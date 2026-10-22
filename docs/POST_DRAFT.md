@@ -100,6 +100,16 @@ Recurring charges are also plain pandas: group debits by normalized merchant, re
 
 The full pipeline is a small Python package with no mandatory heavy dependencies: ingest, forecast, anomaly screen, recurring and duplicate detectors, digest, CLI. The repo has the demo data generator, the tests, and the comparison script.
 
+## Observability: Sentry Agent Tracing ($0.00 metered)
+
+Most agent observability is built for hosted LLMs where every API call costs dollars and leaks prompts. Napper uses Sentry's AI Agent Tracing to monitor an entirely local, offline predictive loop:
+
+- **Root transaction:** `napper.overnight_run` (`op="ai.agent"`) tracks end-to-end execution.
+- **Tool spans:** `ai.tool.ingest`, `ai.tool.recurring`, `ai.tool.duplicate`, and `ai.tool.anomaly_screen` record per-detector timings and flag counts.
+- **Model inference:** `ai.model.tabpfn` records dataset features, horizon length, holdout WMAPE, and latency.
+- **LLM brief:** `ai.chat_completions` traces the local Gemma 3 Ollama generation.
+- **Zero-cost telemetry:** Every span explicitly tags `ai.cost = 0.0` and records an `ai_cost_usd` measurement of `$0.00`. You get full distributed trace waterfalls across your tabular foundation model and LLM steps without exposing personal financial CSV contents.
+
 ## Where it is weak
 
 I would rather tell you than have a judge find out:
@@ -111,9 +121,9 @@ I would rather tell you than have a judge find out:
 
 ## Links
 
-- Code: {{GITHUB_LINK}}
+- Code: https://github.com/ANSUJKMEHER/Napper
 - Demo video: {{VIDEO_LINK}}
-- Live demo page: {{TECH_DOMAIN_LINK}}
+- Live demo page: https://ansujkmeher.github.io/Napper/ (Custom domain: {{TECH_DOMAIN_LINK}})
 - Agent session (DevRelay): {{DEVRELAY_LINK}}
 
 ## Prize categories

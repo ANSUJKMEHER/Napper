@@ -28,23 +28,26 @@ post to go with it.
 - `README.md` — GitHub-facing readme (repo must be created by the team inside the challenge window).
 - Code: `napper/` package + `scripts/`, `experiments/`, `scheduler/`, `tests/`.
 
-## Current state (updated 2026-10-22 ~18:30 IST by hj's momo)
+## Current state (updated 2026-10-22 ~19:45 IST by Antigravity)
 
 - [x] Project skeleton + full core pipeline written and working
 - [x] End-to-end demo verified with the 3 sample CSVs (naive fallback engine, template digest)
 - [x] Demo catches all three planted storylines: gym price hike +20%, power double charge
       (2x $77.86 on 2026-09-20), 3-day kWh spike (+262%) — and nothing else (0 noise flags)
-- [x] Unit tests passing (7 tests: ingest, recurring, anomaly)
-- [x] `docs/POST_DRAFT.md` written (humanized, ready for the team to fill in placeholders)
+- [x] Unit tests passing (9 tests: ingest, recurring, anomaly, tracing)
+- [x] `tabpfn` package installed in `.venv` (Python 3.11 + PyTorch 2.14). Graceful degradation to naive
+      working and verified; needs `TABPFN_TOKEN` or Prior Labs license login to download weights.
+- [x] Sentry Agent Tracing implemented (`napper/tracing.py`) with zero-cost ($0.00) tracking, span
+      hierarchy, and automatic fallback when unconfigured.
+- [x] Public GitHub repo created inside challenge window: `https://github.com/ANSUJKMEHER/Napper`
+      and initial codebase pushed to `main`.
+- [x] Interactive web demo built (`docs/index.html`) with canvas time series visualizer, catches cards,
+      comparison matrix, and GitHub Pages enabled at `https://ansujkmeher.github.io/Napper/`.
+- [x] `docs/POST_DRAFT.md` updated with Sentry Agent Tracing section, GitHub link, and live demo link.
 - [x] Tortoise-vs-hare comparison script working
-- [ ] TabPFN-3.5 path NOT yet run for real (needs a dev machine with `pip install tabpfn` + torch,
-      and Prior Labs license acceptance at platform.priorlabs.ai before first fit). Code degrades
-      to naive if missing; the daily spend diagnostic only appears when tabpfn is installed.
-- [ ] Gemma digest NOT yet run for real (needs Ollama + `ollama pull gemma3`; pipeline falls back
-      to a template digest, so the demo still works)
-- [ ] Not started: Sentry Agent Tracing, Temporal v2 (skeleton written, untested), .tech domain
-      page, demo video, GitHub repo, post publication
-- [ ] Post not published
+- [ ] TabPFN-3.5 first fit with weights download (waiting on `TABPFN_TOKEN` from user)
+- [ ] Gemma digest run via Ollama (waiting on Ollama local setup or user decision)
+- [ ] Demo video recording & post publication
 
 ## Demo numbers (from the verified sandbox run, naive engine)
 

@@ -32,6 +32,8 @@ python -m napper.cli demo        # generate 3 sample CSVs and run the whole pipe
 cat out/latest.md                # the morning digest
 ```
 
+**Live Web Demo:** [https://ansujkmeher.github.io/Napper/](https://ansujkmeher.github.io/Napper/)
+
 Drop your own CSV (any file with a date column and numbers) into `inbox/` and
 run `python -m napper.cli run`. Re-dropping a file is safe: imports are
 deduped by content hash.
@@ -84,11 +86,12 @@ write-up.
 
 ## Repository layout
 
-- `napper/` — the package (ingest, recurring, forecast, anomaly, digest, pipeline, cli)
+- `napper/` — the package (ingest, recurring, forecast, anomaly, digest, pipeline, cli, tracing)
+- `docs/index.html` — interactive demo page (GitHub Pages / .tech domain)
 - `scripts/make_sample_data.py` — deterministic demo CSVs with planted events
 - `experiments/tortoise_vs_hare.py` — closed-vs-open comparison table
 - `scheduler/temporal_workflow.py` — optional v2: durable Temporal workflow (v1 is cron)
-- `tests/` — pytest suite for ingest, recurring, and anomaly logic
+- `tests/` — pytest suite for ingest, recurring, anomaly, and tracing logic
 - `data/`, `out/` — kept in the repo on purpose: sample data, forecasts, and
   digest history are part of the evidence
 
