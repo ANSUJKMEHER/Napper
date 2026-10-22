@@ -45,21 +45,27 @@ post to go with it.
       comparison matrix, and GitHub Pages enabled at `https://ansujkmeher.github.io/Napper/`.
 - [x] `docs/POST_DRAFT.md` updated with Sentry Agent Tracing section, GitHub link, and live demo link.
 - [x] Tortoise-vs-hare comparison script working
-- [ ] TabPFN-3.5 first fit with weights download (waiting on `TABPFN_TOKEN` from user)
-- [ ] Gemma digest run via Ollama (waiting on Ollama local setup or user decision)
+- [x] TabPFN-3.5 first fit and weights download completed on local machine! Real open weights
+      running 100% offline, predicting next month spend at ~1904.17 (2.03% holdout error) and
+      daily spend holdout at 56.34% (vs 676.78% naive baseline).
+- [ ] Gemma digest run via Ollama or template fallback
 - [ ] Demo video recording & post publication
 
-## Demo numbers (from the verified sandbox run, naive engine)
+## Demo numbers (from verified real TabPFN-3.5 run)
 
 ```
-bank next month: ~1913.54 (local model naive-baseline, holdout error 1.77%).
+bank next month: ~1904.17 (local model tabpfn-3.5, holdout error 2.03%).
 price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate
 charge: city power light billed 2x $77.86 on 2026-09-20; 2026-09-16: 57.70 vs expected
 15.95 (+262%)
 ```
 
-electricity holdout wmape 19.62% (baseline), steps 12.83% (baseline). Replace with real
-TabPFN numbers before posting; keep the baseline column next to them.
+Real engine metrics across series:
+- bank monthly spend: TabPFN-3.5 WMAPE 2.03% (naive baseline 1.77%)
+- bank daily spend diagnostic: TabPFN-3.5 WMAPE 56.34% (naive baseline 676.78%, 12x improvement)
+- electricity (kWh): TabPFN-3.5 WMAPE 21.96% (naive baseline 19.62%), 3 planted spikes flagged
+- steps: TabPFN-3.5 WMAPE 9.53% (naive baseline 12.83%, TabPFN beats baseline by 3.3%)
+All 3 planted events caught with zero false alarms.
 
 ## How to run
 

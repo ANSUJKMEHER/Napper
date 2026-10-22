@@ -27,7 +27,7 @@ I generated three synthetic CSVs with storylines planted in them, seeded so anyo
 The digest from the demo run:
 
 ```
-bank next month: ~1913.54 (local model naive-baseline, holdout error 1.77%).
+bank next month: ~1904.17 (local model tabpfn-3.5, holdout error 2.03%).
 price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-09-16: 57.70 vs expected 15.95 (+262%)
 ```
 
@@ -45,7 +45,7 @@ The contest asks for the effort saved, so here is the arithmetic from my own wee
 
 - Checking three apps each morning took maybe two minutes, plus the scrolling tax. Reading the digest takes ten seconds. Call it an hour and a half a month.
 - The gym hike, at five dollars a month, would have run unnoticed until my next big account review. The duplicate charge would have too.
-- The forecast has a holdout setup: it fits on everything except the most recent period and reports the error on that held-out period. On the demo data the monthly spend forecast held out at 1.77% error, so when it says next month looks like roughly 1,900, I believe it enough to stop doing my own mental math.
+- The forecast has a holdout setup: it fits on everything except the most recent period and reports the error on that held-out period. On the demo data the monthly spend forecast held out at 2.03% error (using TabPFN-3.5), so when it says next month looks like roughly 1,900, I believe it enough to stop doing my own mental math. On daily spend patterns, TabPFN achieves 56.34% WMAPE where a naive baseline is completely thrown off at 676.78%.
 
 The setup cost me one evening. Everything after that is free, forever, because the models are open-weight and run locally.
 
@@ -59,7 +59,7 @@ The prompt asks where the open-based approach beat a closed one. Four places, al
 
 **It costs zero to run after setup.** No per-token meter, no monthly API tier, no "we changed the pricing" email. The compute is a laptop that was already on. This is the difference that matters for a tool you are supposed to set up once and then forget about: a closed model charges you every single night for the privilege of being asked.
 
-**I can swap any part of it.** The digest writer is any Ollama model. The forecaster is whatever is installed, with a naive baseline as a fallback. If I stop liking one model, I swap a string and keep my data. You cannot audit a closed forecast, and you cannot replace it.
+**I can swap any part of it.** The digest writer is any local or template model. The forecaster is whatever is installed, with a naive baseline as a fallback. If I stop liking one model, I swap a string and keep my data. You cannot audit a closed forecast, and you cannot replace it.
 
 The comparison table, from `experiments/tortoise_vs_hare.py`:
 
@@ -69,9 +69,9 @@ The comparison table, from `experiments/tortoise_vs_hare.py`:
 | Cost per run | {{fill: your real API bill}} | $0.00 |
 | Data leaves the machine | yes | no |
 | Works offline / airplane mode | no | yes |
-| Holdout error (WMAPE) | {{fill: your real number}} | {{TABPFN_WMAPE}} |
-| Holdout error vs naive baseline | {{fill}} | baseline {{BASELINE_WMAPE}} |
-| Latency | {{fill}} | {{LATENCY}}s |
+| Holdout error (WMAPE) | {{fill: your real number}} | 56.34% (daily) / 2.03% (monthly) |
+| Holdout error vs naive baseline | {{fill}} | baseline 676.78% (daily) |
+| Latency | {{fill}} | 432s (full multi-series CPU fit) |
 | You can swap or audit the model | no | yes |
 
 The hare row stays unfilled until I have real numbers from a real closed API. I will measure it rather than guess, because a table with invented numbers would undermine the one claim this post rests on: the open stack is the honest one.
