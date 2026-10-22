@@ -1,0 +1,441 @@
+{
+  "imported": [
+    {
+      "dataset": "bank",
+      "rows": 253,
+      "archived_as": "bank.csv"
+    },
+    {
+      "dataset": "electricity",
+      "rows": 386,
+      "archived_as": "electricity.csv"
+    },
+    {
+      "dataset": "steps",
+      "rows": 386,
+      "archived_as": "steps.csv"
+    }
+  ],
+  "series": [
+    {
+      "name": "bank:spend",
+      "unit": "amount",
+      "model": "naive-baseline",
+      "train_points": 11,
+      "holdout_points": 1,
+      "horizon_periods": 1,
+      "step_days": 30,
+      "wmape_pct": 1.77,
+      "mape_pct": 1.77,
+      "rmse": 34.32,
+      "baseline": {
+        "model": "linear-naive",
+        "wmape_pct": 1.77,
+        "mape_pct": 1.77,
+        "rmse": 34.32
+      },
+      "fit_seconds": 0.0,
+      "next_sum": 1913.54,
+      "next_avg": 1913.54,
+      "pred": [
+        {
+          "date": "2026-10-30",
+          "value": 1913.54
+        }
+      ],
+      "anomalies": [],
+      "history_anomalies": []
+    },
+    {
+      "name": "electricity:kwh",
+      "unit": "kwh",
+      "model": "naive-baseline",
+      "train_points": 372,
+      "holdout_points": 14,
+      "horizon_periods": 30,
+      "step_days": 1,
+      "wmape_pct": 19.62,
+      "mape_pct": 22.52,
+      "rmse": 3.5,
+      "baseline": {
+        "model": "linear-naive",
+        "wmape_pct": 19.62,
+        "mape_pct": 22.52,
+        "rmse": 3.5
+      },
+      "fit_seconds": 0.0,
+      "next_sum": 427.14,
+      "next_avg": 14.24,
+      "pred": [
+        {
+          "date": "2026-10-22",
+          "value": 14.44
+        },
+        {
+          "date": "2026-10-23",
+          "value": 14.43
+        },
+        {
+          "date": "2026-10-24",
+          "value": 14.41
+        },
+        {
+          "date": "2026-10-25",
+          "value": 14.4
+        },
+        {
+          "date": "2026-10-26",
+          "value": 14.38
+        },
+        {
+          "date": "2026-10-27",
+          "value": 14.37
+        },
+        {
+          "date": "2026-10-28",
+          "value": 14.36
+        },
+        {
+          "date": "2026-10-29",
+          "value": 14.34
+        },
+        {
+          "date": "2026-10-30",
+          "value": 14.33
+        },
+        {
+          "date": "2026-10-31",
+          "value": 14.31
+        },
+        {
+          "date": "2026-11-01",
+          "value": 14.3
+        },
+        {
+          "date": "2026-11-02",
+          "value": 14.29
+        },
+        {
+          "date": "2026-11-03",
+          "value": 14.27
+        },
+        {
+          "date": "2026-11-04",
+          "value": 14.26
+        },
+        {
+          "date": "2026-11-05",
+          "value": 14.25
+        },
+        {
+          "date": "2026-11-06",
+          "value": 14.23
+        },
+        {
+          "date": "2026-11-07",
+          "value": 14.22
+        },
+        {
+          "date": "2026-11-08",
+          "value": 14.2
+        },
+        {
+          "date": "2026-11-09",
+          "value": 14.19
+        },
+        {
+          "date": "2026-11-10",
+          "value": 14.18
+        },
+        {
+          "date": "2026-11-11",
+          "value": 14.16
+        },
+        {
+          "date": "2026-11-12",
+          "value": 14.15
+        },
+        {
+          "date": "2026-11-13",
+          "value": 14.13
+        },
+        {
+          "date": "2026-11-14",
+          "value": 14.12
+        },
+        {
+          "date": "2026-11-15",
+          "value": 14.11
+        },
+        {
+          "date": "2026-11-16",
+          "value": 14.09
+        },
+        {
+          "date": "2026-11-17",
+          "value": 14.08
+        },
+        {
+          "date": "2026-11-18",
+          "value": 14.06
+        },
+        {
+          "date": "2026-11-19",
+          "value": 14.05
+        },
+        {
+          "date": "2026-11-20",
+          "value": 14.04
+        }
+      ],
+      "anomalies": [],
+      "history_anomalies": [
+        {
+          "date": "2026-09-14",
+          "actual": 62.4,
+          "expected": 19.2,
+          "off_pct": 225.0,
+          "note": "2026-09-14: 62.40 vs expected 19.20 (+225%)"
+        },
+        {
+          "date": "2026-09-15",
+          "actual": 59.7,
+          "expected": 19.0,
+          "off_pct": 214.2,
+          "note": "2026-09-15: 59.70 vs expected 19.00 (+214%)"
+        },
+        {
+          "date": "2026-09-16",
+          "actual": 57.7,
+          "expected": 15.95,
+          "off_pct": 261.8,
+          "note": "2026-09-16: 57.70 vs expected 15.95 (+262%)"
+        }
+      ]
+    },
+    {
+      "name": "steps:steps",
+      "unit": "steps",
+      "model": "naive-baseline",
+      "train_points": 372,
+      "holdout_points": 14,
+      "horizon_periods": 30,
+      "step_days": 1,
+      "wmape_pct": 12.83,
+      "mape_pct": 13.15,
+      "rmse": 1219.07,
+      "baseline": {
+        "model": "linear-naive",
+        "wmape_pct": 12.83,
+        "mape_pct": 13.15,
+        "rmse": 1219.07
+      },
+      "fit_seconds": 0.0,
+      "next_sum": 240547.38,
+      "next_avg": 8018.25,
+      "pred": [
+        {
+          "date": "2026-10-22",
+          "value": 7927.9
+        },
+        {
+          "date": "2026-10-23",
+          "value": 7934.13
+        },
+        {
+          "date": "2026-10-24",
+          "value": 7940.36
+        },
+        {
+          "date": "2026-10-25",
+          "value": 7946.59
+        },
+        {
+          "date": "2026-10-26",
+          "value": 7952.82
+        },
+        {
+          "date": "2026-10-27",
+          "value": 7959.05
+        },
+        {
+          "date": "2026-10-28",
+          "value": 7965.28
+        },
+        {
+          "date": "2026-10-29",
+          "value": 7971.51
+        },
+        {
+          "date": "2026-10-30",
+          "value": 7977.74
+        },
+        {
+          "date": "2026-10-31",
+          "value": 7983.98
+        },
+        {
+          "date": "2026-11-01",
+          "value": 7990.21
+        },
+        {
+          "date": "2026-11-02",
+          "value": 7996.44
+        },
+        {
+          "date": "2026-11-03",
+          "value": 8002.67
+        },
+        {
+          "date": "2026-11-04",
+          "value": 8008.9
+        },
+        {
+          "date": "2026-11-05",
+          "value": 8015.13
+        },
+        {
+          "date": "2026-11-06",
+          "value": 8021.36
+        },
+        {
+          "date": "2026-11-07",
+          "value": 8027.59
+        },
+        {
+          "date": "2026-11-08",
+          "value": 8033.82
+        },
+        {
+          "date": "2026-11-09",
+          "value": 8040.05
+        },
+        {
+          "date": "2026-11-10",
+          "value": 8046.29
+        },
+        {
+          "date": "2026-11-11",
+          "value": 8052.52
+        },
+        {
+          "date": "2026-11-12",
+          "value": 8058.75
+        },
+        {
+          "date": "2026-11-13",
+          "value": 8064.98
+        },
+        {
+          "date": "2026-11-14",
+          "value": 8071.21
+        },
+        {
+          "date": "2026-11-15",
+          "value": 8077.44
+        },
+        {
+          "date": "2026-11-16",
+          "value": 8083.67
+        },
+        {
+          "date": "2026-11-17",
+          "value": 8089.9
+        },
+        {
+          "date": "2026-11-18",
+          "value": 8096.13
+        },
+        {
+          "date": "2026-11-19",
+          "value": 8102.36
+        },
+        {
+          "date": "2026-11-20",
+          "value": 8108.59
+        }
+      ],
+      "anomalies": [],
+      "history_anomalies": []
+    }
+  ],
+  "events": [
+    {
+      "type": "price_change",
+      "merchant": "fitness first gym",
+      "typical_amount": 24.99,
+      "latest_amount": 29.99,
+      "change_pct": 20.0,
+      "message": "price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%)"
+    },
+    {
+      "type": "duplicate_charge",
+      "date": "2026-09-20",
+      "merchant": "city power light",
+      "amount": 77.86,
+      "count": 2,
+      "message": "possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20"
+    }
+  ],
+  "digest": "bank next month: ~1913.54 (local model naive-baseline, holdout error 1.77%).\nprice change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-09-16: 57.70 vs expected 15.95 (+262%)",
+  "digest_writer": "template",
+  "recurring": [
+    {
+      "merchant": "bluebird coffee",
+      "typical_amount": 4.48,
+      "months_seen": 13,
+      "last_month_amount": 4.61,
+      "stable": true,
+      "cv_pct": 5.8
+    },
+    {
+      "merchant": "city power light",
+      "typical_amount": 96.06,
+      "months_seen": 13,
+      "last_month_amount": 79.19,
+      "stable": false,
+      "cv_pct": 18.1
+    },
+    {
+      "merchant": "fitness first gym",
+      "typical_amount": 24.99,
+      "months_seen": 13,
+      "last_month_amount": 29.99,
+      "stable": true,
+      "cv_pct": 9.4
+    },
+    {
+      "merchant": "greenbasket grocery",
+      "typical_amount": 68.03,
+      "months_seen": 13,
+      "last_month_amount": 51.61,
+      "stable": false,
+      "cv_pct": 16.1
+    },
+    {
+      "merchant": "netflix com",
+      "typical_amount": 12.99,
+      "months_seen": 13,
+      "last_month_amount": 12.99,
+      "stable": true,
+      "cv_pct": 0.0
+    },
+    {
+      "merchant": "oak street apartments",
+      "typical_amount": 1450.0,
+      "months_seen": 13,
+      "last_month_amount": 1450.0,
+      "stable": true,
+      "cv_pct": 0.0
+    },
+    {
+      "merchant": "streamly subscription",
+      "typical_amount": 9.99,
+      "months_seen": 13,
+      "last_month_amount": 9.99,
+      "stable": true,
+      "cv_pct": 0.0
+    }
+  ],
+  "digest_file": "D:\\Projects\\Hackathons-Projects\\napper\\out\\digest.md"
+}

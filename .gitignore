@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.env.*
+*.egg-info/
+dist/
+build/
+inbox/*.csv
+inbox/processed/
+!inbox/.gitkeep
+

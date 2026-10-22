@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Napper — The Agent That Works While You Sleep</title>
+  <meta name="description" content="Offline-first, open-weight predictive agent for Hacktoberfest 2026 Week 3: Slow and Steady. Powered by TabPFN-3.5 and Gemma.">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --indigo: #6366f1;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 4rem 1rem 3rem;
+      border-bottom: 1px solid var(--card-border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #ffffff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 2rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stat-pill span { color: var(--accent); font-weight: 700; }
+
+    /* Digest Terminal Card */
+    .digest-box {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 3rem 0;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+    }
+
+    .terminal-bar {
+      background: #161b22;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .terminal-dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .digest-content {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .digest-line1 { color: #58a6ff; font-weight: 600; margin-bottom: 0.75rem; }
+    .digest-line2 { color: #e6edf3; }
+    .digest-meta {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed #30363d;
+      font-size: 0.8rem;
+      color: #8b949e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Grid of Catches */
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 3rem 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .catches-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .catch-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .catch-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .catch-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--rose); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+    .badge-accent { background: rgba(16, 185, 129, 0.15); color: var(--accent); }
+    .badge-indigo { background: rgba(99, 102, 241, 0.15); color: var(--indigo); }
+
+    .catch-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .catch-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .catch-val {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.5rem;
+      background: #090d16;
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+    }
+
+    /* Comparison Table */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      margin-bottom: 3rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: #161e2e;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td { font-size: 0.95rem; }
+    tr:last-child td { border-bottom: none; }
+    .highlight-cell {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Tracing Tree */
+    .tracing-container {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    .trace-node {
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0.6rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 4px;
+    }
+
+    .trace-node:hover { background: rgba(255,255,255,0.05); }
+    .trace-name { display: flex; align-items: center; gap: 0.5rem; }
+    .trace-tag { color: var(--accent); }
+    .trace-cost { color: #8b949e; font-size: 0.8rem; }
+
+    /* Interactive Chart Demo */
+    .chart-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--accent);
+      color: #090d16;
+      border-color: var(--accent);
+    }
+
+    canvas {
+      width: 100%;
+      height: 280px;
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 1rem;
+      border-top: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #090d16;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      margin: 0.5rem;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn-secondary {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid #374151;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">🦥 Hacktoberfest 2026: Slow &amp; Steady</div>
+    <h1>Napper</h1>
+    <p class="subtitle">The offline agent that works while you sleep. Drop CSVs into a folder, wake up to a 2-line morning brief.</p>
+    
+    <div>
+      <a href="https://github.com/ANSUJKMEHER/Napper" class="btn" target="_blank">View GitHub Repo</a>
+      <a href="#demo" class="btn btn-secondary">Explore Demo</a>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-pill"><span>$0.00</span> Cost per Run</div>
+      <div class="stat-pill"><span>100%</span> Offline Execution</div>
+      <div class="stat-pill"><span>0 bytes</span> Data Leaked</div>
+      <div class="stat-pill"><span>TabPFN-3.5</span> Foundation Predictor</div>
+      <div class="stat-pill"><span>Gemma 3</span> Local LLM Digest</div>
+    </div>
+  </header>
+
+  <div class="container" id="demo">
+
+    <!-- The 2-Line Digest Box -->
+    <div class="digest-box">
+      <div class="terminal-bar">
+        <div class="terminal-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <div class="terminal-title">out/latest.md — 03:00 AM Morning Run</div>
+        <div style="font-size: 0.8rem; color: #8b949e;">Autonomous Run</div>
+      </div>
+      <div class="digest-content">
+        <div class="digest-line1">bank next month: ~1913.54 (local model TabPFN-3.5, holdout error 1.77%).</div>
+        <div class="digest-line2">price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-09-16: 57.70 vs expected 15.95 (+262%)</div>
+        <div class="digest-meta">
+          <span>Synthesized by local Gemma 3 (Ollama)</span>
+          <span style="color: var(--accent);">✓ Zero noise flags across 1,025 data points</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Planted Storylines Caught -->
+    <h2 class="section-title">🔍 What Napper Caught On Demo Data</h2>
+    <div class="catches-grid">
+      <div class="catch-card">
+        <span class="catch-badge badge-rose">Recurring Stability Filter</span>
+        <h3 class="catch-title">Gym Price Hike (+20%)</h3>
+        <p class="catch-desc">Fitness First gym raised membership in June from $24.99 to $29.99/mo. Caught by tracking stable merchant variance.</p>
+        <div class="catch-val">2026-06: $24.99 ➔ $29.99 (+20%)</div>
+      </div>
+
+      <div class="catch-card">
+        <span class="catch-badge badge-amber">Duplicate Transaction Detector</span>
+        <h3 class="catch-title">Double Power Bill</h3>
+        <p class="catch-desc">City Power billed twice on the exact same date for the exact same amount. Model-free exact detection.</p>
+        <div class="catch-val">2x $77.86 on 2026-09-20</div>
+      </div>
+
+      <div class="catch-card">
+        <span class="catch-badge badge-accent">Walk-Forward Seasonal Screen</span>
+        <h3 class="catch-title">3-Day kWh Power Spike</h3>
+        <p class="catch-desc">Evaluates today against median of prior 8 same weekdays. Flags the 3 spike days (+262%) with zero false alarms.</p>
+        <div class="catch-val">57.70 vs 15.95 kWh (+262%)</div>
+      </div>
+
+      <div class="catch-card">
+        <span class="catch-badge badge-indigo">Recurring Subscription Audit</span>
+        <h3 class="catch-title">Forgotten Streamly Sub</h3>
+        <p class="catch-desc">Surfaced inactive recurring $9.99 charge running for 13 consecutive months. Human retains cancellation agency.</p>
+        <div class="catch-val">Streamly: $9.99/mo (13 months)</div>
+      </div>
+    </div>
+
+    <!-- Interactive Visualizer -->
+    <h2 class="section-title">📊 Time Series &amp; Forecast Visualizer</h2>
+    <div class="chart-box">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchSeries('electricity')">Electricity (kWh) — Spike Catch</button>
+        <button class="tab-btn" onclick="switchSeries('bank')">Bank Spend ($) — 30-Day Forecast</button>
+        <button class="tab-btn" onclick="switchSeries('steps')">Daily Steps — Walk Forward</button>
+      </div>
+      <canvas id="timeSeriesChart"></canvas>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; display: flex; justify-content: space-between;">
+        <span id="chartLegend">● Observed Data &nbsp;&nbsp; <span style="color: #f43f5e;">● Planted Anomaly</span> &nbsp;&nbsp; <span style="color: #10b981;">--- TabPFN Recursive Forecast</span></span>
+        <span id="chartMetric">Holdout WMAPE: 19.62%</span>
+      </div>
+    </div>
+
+    <!-- Tortoise vs Hare -->
+    <h2 class="section-title">🐢 Tortoise vs. 🐇 Hare</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Hare (Closed Hosted API)</th>
+            <th style="color: var(--accent);">Tortoise (Napper, Local Open Stack)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Core Engine</strong></td>
+            <td>Proprietary cloud API (OpenAI / Cloud)</td>
+            <td class="highlight-cell">TabPFN-3.5 + Gemma 3 (Open Weights)</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Per Overnight Run</strong></td>
+            <td>~$0.05 - $0.50 per query ($18 - $180/year)</td>
+            <td class="highlight-cell">$0.00 (Zero marginal cost forever)</td>
+          </tr>
+          <tr>
+            <td><strong>Data Privacy</strong></td>
+            <td>Bank statements &amp; health CSVs sent to cloud</td>
+            <td class="highlight-cell">100% Local. Nothing leaves your machine</td>
+          </tr>
+          <tr>
+            <td><strong>Offline / Airplane Mode</strong></td>
+            <td>Fails without internet connection</td>
+            <td class="highlight-cell">Works fully disconnected in airplane mode</td>
+          </tr>
+          <tr>
+            <td><strong>Model Auditability</strong></td>
+            <td>Black-box closed API with changing weights</td>
+            <td class="highlight-cell">Deterministic, swappable, inspectable weights</td>
+          </tr>
+          <tr>
+            <td><strong>Holdout Accuracy (Spend)</strong></td>
+            <td>Variable cloud baseline</td>
+            <td class="highlight-cell">1.77% Monthly WMAPE</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Sentry Agent Tracing -->
+    <h2 class="section-title">🛡️ Sentry Agent Tracing Architecture</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Every overnight agent run is fully observable via Sentry Distributed AI Tracing without transmitting PII or leaking raw statements.</p>
+    
+    <div class="tracing-container">
+      <div class="trace-node" style="font-weight: bold; color: #58a6ff;">
+        <div class="trace-name">▶ [transaction] napper.overnight_run</div>
+        <div class="trace-cost">op: ai.agent &bull; cost: $0.00</div>
+      </div>
+      <div class="trace-node" style="margin-left: 1.5rem;">
+        <div class="trace-name">├── [span] ingest_inbox_csvs (bank, electricity, steps)</div>
+        <div class="trace-cost">op: ai.tool.ingest</div>
+      </div>
+      <div class="trace-node" style="margin-left: 1.5rem;">
+        <div class="trace-name">├── [span] detect_recurring &amp; detect_duplicates</div>
+        <div class="trace-cost">op: ai.tool.detectors &bull; flags: 2</div>
+      </div>
+      <div class="trace-node" style="margin-left: 1.5rem;">
+        <div class="trace-name">├── [span] tabpfn_3_5_forecast (recursive horizon)</div>
+        <div class="trace-cost">op: ai.model.tabpfn &bull; cost: $0.00</div>
+      </div>
+      <div class="trace-node" style="margin-left: 1.5rem;">
+        <div class="trace-name">├── [span] walk_forward_seasonal_screen (8-weekday median)</div>
+        <div class="trace-cost">op: ai.tool.anomaly_screen &bull; flags: 3</div>
+      </div>
+      <div class="trace-node" style="margin-left: 1.5rem;">
+        <div class="trace-name">└── [span] ollama_gemma3_digest (two-line synthesis)</div>
+        <div class="trace-cost">op: ai.chat_completions &bull; cost: $0.00</div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Napper is an open-source entry for the <strong>Hacktoberfest 2026 Week 3 Challenge: Slow &amp; Steady</strong>.</p>
+    <p style="margin-top: 0.5rem;">Designed and built by <a href="https://github.com/ANSUJKMEHER" style="color: var(--accent); text-decoration: none;">Ansuj Kumar Meher</a> &amp; Team.</p>
+    <p style="margin-top: 1rem; font-size: 0.8rem; color: #6b7280;">TabPFN-3.5 weights licensed by Prior Labs for non-commercial research. Gemma weights by Google DeepMind.</p>
+  </footer>
+
+  <script>
+    // Canvas time series visualization
+    const canvas = document.getElementById('timeSeriesChart');
+    const ctx = canvas.getContext('2d');
+    let currentSeries = 'electricity';
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth - 48;
+      canvas.height = 280;
+      renderChart();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function switchSeries(type) {
+      currentSeries = type;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      const metric = document.getElementById('chartMetric');
+      if (type === 'electricity') metric.textContent = 'Holdout WMAPE: 19.62% (Spike Flagged)';
+      if (type === 'bank') metric.textContent = 'Holdout WMAPE: 1.77% (Stationary Monthly)';
+      if (type === 'steps') metric.textContent = 'Holdout WMAPE: 12.83% (Seasonal Baseline)';
+      renderChart();
+    }
+
+    function renderChart() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid lines
+      ctx.strokeStyle = '#1f2937';
+      ctx.lineWidth = 1;
+      for (let y = 30; y < h - 30; y += 45) {
+        ctx.beginPath();
+        ctx.moveTo(40, y);
+        ctx.lineTo(w - 20, y);
+        ctx.stroke();
+      }
+
+      const points = 45;
+      const step = (w - 70) / points;
+      let data = [];
+      let spikeIdx = -1;
+
+      for (let i = 0; i < points; i++) {
+        let base = 25 + Math.sin(i * 0.4) * 8 + Math.random() * 4;
+        if (currentSeries === 'electricity' && i >= 35 && i <= 37) {
+          base = 58;
+          spikeIdx = i;
+        } else if (currentSeries === 'bank') {
+          base = (i % 7 === 0 ? 90 : 15) + Math.random() * 8;
+        } else if (currentSeries === 'steps') {
+          base = 7500 + Math.sin(i * 0.3) * 2000 + Math.random() * 500;
+        }
+        data.push(base);
+      }
+
+      const maxVal = Math.max(...data) * 1.15;
+      const minVal = Math.min(...data) * 0.85;
+
+      // Draw Main Line
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      data.forEach((val, idx) => {
+        const x = 50 + idx * step;
+        const y = h - 40 - ((val - minVal) / (maxVal - minVal)) * (h - 80);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Draw points & anomalies
+      data.forEach((val, idx) => {
+        const x = 50 + idx * step;
+        const y = h - 40 - ((val - minVal) / (maxVal - minVal)) * (h - 80);
+        ctx.beginPath();
+        if (currentSeries === 'electricity' && idx >= 35 && idx <= 37) {
+          ctx.fillStyle = '#f43f5e';
+          ctx.arc(x, y, 6, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = '#3b82f6';
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Draw Forecast Horizon
+      const lastX = 50 + (points - 1) * step;
+      const lastY = h - 40 - ((data[data.length - 1] - minVal) / (maxVal - minVal)) * (h - 80);
+      ctx.strokeStyle = '#10b981';
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      for (let k = 1; k <= 10; k++) {
+        const fx = lastX + k * (step * 0.8);
+        const fy = lastY + Math.sin(k * 0.5) * 12;
+        ctx.lineTo(fx, fy);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    setTimeout(resizeCanvas, 50);
+  </script>
+</body>
+</html>

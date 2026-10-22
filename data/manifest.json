@@ -1,0 +1,20 @@
+{
+  "ab250b551d48a9e2330035785e32ed327cef1b60ff2f3d1ef01532315111eaea": {
+    "dataset": "bank",
+    "rows": 253,
+    "imported_at": "2026-10-22T14:03:06.252736+00:00",
+    "source": "bank.csv"
+  },
+  "fad8dfe3efec8361178a0a03c5ca79c3f4b766068d3e78bcb832760259b000b0": {
+    "dataset": "electricity",
+    "rows": 386,
+    "imported_at": "2026-10-22T14:03:06.259896+00:00",
+    "source": "electricity.csv"
+  },
+  "f52f1c0aeda09834e76a16b857af0ccfd52437426bb8568c5d780ea1ff6cbdd3": {
+    "dataset": "steps",
+    "rows": 386,
+    "imported_at": "2026-10-22T14:03:06.265725+00:00",
+    "source": "steps.csv"
+  }
+}
