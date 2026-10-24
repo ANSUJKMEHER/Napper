@@ -551,6 +551,18 @@
         alert(`Uploaded & Ingested: ${file.name}`);
         await fetchStatus();
         await triggerRun();
+        // Automatically switch the chart to the newly uploaded series
+        const baseName = file.name.replace(/\.csv$/i, '');
+        const sel = document.getElementById('seriesSelector');
+        if (sel) {
+          for (const opt of sel.options) {
+            if (opt.value.startsWith(baseName)) {
+              sel.value = opt.value;
+              await loadChart(opt.value);
+              break;
+            }
+          }
+        }
       } catch (err) {
         alert('Upload failed: ' + err);
       }

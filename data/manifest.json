@@ -16,5 +16,11 @@
     "rows": 386,
     "imported_at": "2026-10-22T14:03:06.265725+00:00",
     "source": "steps.csv"
+  },
+  "f07c4587f8d8d95ce24c0f24d03265cb5850ce5e19e84ae410f3c27e5586ddea": {
+    "dataset": "water",
+    "rows": 85,
+    "imported_at": "2026-10-24T18:04:26.521408+00:00",
+    "source": "water.csv"
   }
 }
