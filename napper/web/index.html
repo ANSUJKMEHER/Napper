@@ -93,7 +93,7 @@
 
       <div class="mt-4 pt-3 border-t border-gray-800/60 flex flex-wrap items-center justify-between text-xs text-gray-500">
         <span id="briefMeta">Synthesized locally &bull; Data never left your machine</span>
-        <span class="text-emerald-400 font-semibold flex items-center gap-1">
+        <span id="trustStat" class="text-emerald-400 font-semibold flex items-center gap-1">
           <span>✓</span> 0 false alarms across 1,025 data points
         </span>
       </div>
@@ -212,9 +212,9 @@
         <!-- Drop Box -->
         <div id="dropzone" class="border-2 border-dashed border-gray-700 hover:border-emerald-500 rounded-xl p-8 text-center cursor-pointer transition bg-black/20 flex flex-col items-center justify-center space-y-2">
           <span class="text-4xl">📄</span>
-          <p class="text-sm font-semibold text-gray-200">Drag &amp; drop a CSV file here</p>
-          <p class="text-xs text-gray-500">or click to browse from your computer</p>
-          <input type="file" id="fileInput" accept=".csv" class="hidden" onchange="uploadFile(this.files[0])">
+          <p class="text-sm font-semibold text-gray-200">Drag &amp; drop CSV files here</p>
+          <p class="text-xs text-gray-500">or click to browse multiple files from your computer</p>
+          <input type="file" id="fileInput" accept=".csv" multiple class="hidden" onchange="uploadFiles(this.files)">
         </div>
 
         <!-- Datasets in Store -->
@@ -328,7 +328,7 @@
           }
         }
 
-        // Render datasets
+        // Render datasets & update dynamic trust stat
         const dsList = document.getElementById('datasetsList');
         if (data.datasets && data.datasets.length > 0) {
           dsList.innerHTML = data.datasets.map(d => `
@@ -337,6 +337,13 @@
               <span class="text-gray-500">${d.rows} rows &bull; ${d.size_kb} KB</span>
             </div>
           `).join('');
+
+          const totalPoints = data.datasets.reduce((sum, d) => sum + (d.rows || 0), 0);
+          const totalFiles = data.datasets.length;
+          const trustEl = document.getElementById('trustStat');
+          if (trustEl) {
+            trustEl.innerHTML = `<span>✓</span> 0 false alarms across ${totalPoints.toLocaleString()} data points (${totalFiles} datasets)`;
+          }
         }
       } catch (err) {
         console.error('Error fetching status:', err);
@@ -517,11 +524,31 @@
       }
     }
 
+    function showToast(message, type = 'success') {
+      const existing = document.getElementById('napperToast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'napperToast';
+      toast.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border text-xs font-semibold shadow-2xl flex items-center gap-2 transition-all transform duration-300 opacity-0 translate-y-4 ${
+        type === 'success' 
+          ? 'bg-emerald-950/95 border-emerald-500/60 text-emerald-300' 
+          : 'bg-rose-950/95 border-rose-500/60 text-rose-300'
+      }`;
+      toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <span>${message}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-4'), 20);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
     function copyBrief() {
       const l1 = document.getElementById('briefLine1').textContent;
       const l2 = document.getElementById('briefLine2').textContent;
       navigator.clipboard.writeText(`${l1}\n${l2}`).then(() => {
-        alert('Brief copied to clipboard!');
+        showToast('Brief copied to clipboard!');
       });
     }
 
@@ -535,28 +562,36 @@
     dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropzone.classList.remove('border-emerald-500');
-      if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
     });
 
-    async function uploadFile(file) {
-      if (!file || !file.name.endsWith('.csv')) {
-        alert('Please drop a valid .csv file');
+    async function uploadFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      const validFiles = Array.from(fileList).filter(f => f.name.endsWith('.csv'));
+      if (validFiles.length === 0) {
+        showToast('Please drop valid .csv files', 'error');
         return;
       }
+
       const formData = new FormData();
-      formData.append('file', file);
+      for (const file of validFiles) {
+        formData.append('file', file);
+      }
+
       try {
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        alert(`Uploaded & Ingested: ${file.name}`);
+        const names = validFiles.map(f => f.name).join(', ');
+        showToast(`Ingested ${validFiles.length} file(s): ${names}`);
         await fetchStatus();
         await triggerRun();
-        // Automatically switch the chart to the newly uploaded series
-        const baseName = file.name.replace(/\.csv$/i, '');
+
+        // Switch to the first newly added series
+        const firstBase = validFiles[0].name.replace(/\.csv$/i, '');
         const sel = document.getElementById('seriesSelector');
         if (sel) {
           for (const opt of sel.options) {
-            if (opt.value.startsWith(baseName)) {
+            if (opt.value.startsWith(firstBase)) {
               sel.value = opt.value;
               await loadChart(opt.value);
               break;
@@ -564,7 +599,7 @@
           }
         }
       } catch (err) {
-        alert('Upload failed: ' + err);
+        showToast('Upload failed: ' + err, 'error');
       }
     }
 

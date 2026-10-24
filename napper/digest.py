@@ -72,7 +72,14 @@ def _ranked_notes(forecasts: list[dict]) -> list[str]:
     """Anomaly notes sorted by severity (biggest percent-off first)."""
     notes = []
     for x in forecasts:
-        notes += [a["note"] for a in x.get("history_anomalies", [])]
+        s_name = x.get("name", "")
+        series_label = s_name.split(":")[0] if ":" in s_name else s_name
+        for a in x.get("history_anomalies", []):
+            raw_note = a.get("note", "")
+            if not raw_note.lower().startswith(series_label.lower()):
+                notes.append(f"{series_label}: {raw_note}")
+            else:
+                notes.append(raw_note)
     return sorted(notes, key=lambda n: _severity(n), reverse=True)
 
 
