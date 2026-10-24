@@ -28,28 +28,34 @@ post to go with it.
 - `README.md` — GitHub-facing readme (repo must be created by the team inside the challenge window).
 - Code: `napper/` package + `scripts/`, `experiments/`, `scheduler/`, `tests/`.
 
-## Current state (updated 2026-10-22 ~19:45 IST by Antigravity)
+## Current state (updated 2026-10-24 ~22:35 IST by Antigravity)
 
 - [x] Project skeleton + full core pipeline written and working
 - [x] End-to-end demo verified with the 3 sample CSVs (naive fallback engine, template digest)
 - [x] Demo catches all three planted storylines: gym price hike +20%, power double charge
       (2x $77.86 on 2026-09-20), 3-day kWh spike (+262%) — and nothing else (0 noise flags)
-- [x] Unit tests passing (9 tests: ingest, recurring, anomaly, tracing)
+- [x] Full unit test suite passing (12 tests across ingest, recurring, anomaly, tracing, and web server endpoints)
 - [x] `tabpfn` package installed in `.venv` (Python 3.11 + PyTorch 2.14). Graceful degradation to naive
-      working and verified; needs `TABPFN_TOKEN` or Prior Labs license login to download weights.
+      working and verified; TabPFN-3.5 token and weights loaded locally.
 - [x] Sentry Agent Tracing implemented (`napper/tracing.py`) with zero-cost ($0.00) tracking, span
       hierarchy, and automatic fallback when unconfigured.
 - [x] Public GitHub repo created inside challenge window: `https://github.com/ANSUJKMEHER/Napper`
       and initial codebase pushed to `main`.
 - [x] Interactive web demo built (`docs/index.html`) with canvas time series visualizer, catches cards,
       comparison matrix, and GitHub Pages enabled at `https://ansujkmeher.github.io/Napper/`.
-- [x] `docs/POST_DRAFT.md` updated with Sentry Agent Tracing section, GitHub link, and live demo link.
+- [x] Built-in Interactive Local Web Dashboard implemented (`napper/server.py` and `napper/web/index.html`)
+      running on `http://localhost:5000` via `python -m napper.cli web` featuring:
+      - Drag-and-drop CSV ingestion
+      - Dual-speed execution toggle: ⚡ Nap Mode (~2s) vs 🦥 Deep Sleep Mode (TabPFN-3.5)
+      - Interactive Chart.js time-series & forecast visualizer
+      - Text-to-speech audio morning brief synthesis
+      - Sentry Agent Tracing waterfall view ($0.00 cost)
+- [x] `docs/POST_DRAFT.md` updated with real TabPFN-3.5 metrics, Sentry tracing section, web UI section, and live links.
 - [x] Tortoise-vs-hare comparison script working
 - [x] TabPFN-3.5 first fit and weights download completed on local machine! Real open weights
       running 100% offline, predicting next month spend at ~1904.17 (2.03% holdout error) and
       daily spend holdout at 56.34% (vs 676.78% naive baseline).
-- [ ] Gemma digest run via Ollama or template fallback
-- [ ] Demo video recording & post publication
+- [ ] Demo video recording & post publication on DEV.to
 
 ## Demo numbers (from verified real TabPFN-3.5 run)
 
