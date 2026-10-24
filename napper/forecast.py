@@ -168,10 +168,12 @@ def forecast(
     step_days: int = 1,
     period_lag: int = 7,
     anomaly_screen: bool = True,
+    engine: str = "auto",
 ) -> dict:
     """Forecast a series (columns date, value). Returns a json-safe dict.
 
     step_days=1, period_lag=7 -> daily series; step_days=7, period_lag=1 -> weekly.
+    engine: 'auto' (use TabPFN if available), 'fast'/'naive' (instant baseline).
     """
     d = df[["date", "value"]].copy()
     d["date"] = pd.to_datetime(d["date"])
@@ -196,30 +198,31 @@ def forecast(
     naive_test = naive_predict(hist[:n], len(test_actual))
     naive_horizon = naive_predict(hist, horizon_periods)
 
-    try:
-        from tabpfn import TabPFNRegressor  # optional, heavy
+    if engine not in ("naive", "fast"):
+        try:
+            from tabpfn import TabPFNRegressor  # optional, heavy
 
-        reg = TabPFNRegressor(device="auto")
-        t0 = time.perf_counter()
-        with tracing.trace_step(
-            "ai.model.tabpfn",
-            "tabpfn_3_5_forecast",
-            data={
-                "n_features": len(FEATURE_COLS),
-                "n_train": n,
-                "horizon_periods": horizon_periods,
-                "model": "tabpfn-3.5",
-            },
-        ):
-            reg.fit(train_feat[FEATURE_COLS], hist[:n])
-            test_pred = np.asarray(reg.predict(test_feat[FEATURE_COLS])).ravel()
-            horizon = _recursive_forecast(reg, feat.iloc[-1], hist, horizon_periods, step_days)
-        model_name = "tabpfn-3.5"
-        elapsed = round(time.perf_counter() - t0, 2)
-    except ImportError:
-        pass  # tabpfn not installed; naive fallback
-    except Exception as exc:  # keep the pipeline alive on model hiccups
-        model_name = f"tabpfn-error({type(exc).__name__})"
+            reg = TabPFNRegressor(device="auto")
+            t0 = time.perf_counter()
+            with tracing.trace_step(
+                "ai.model.tabpfn",
+                "tabpfn_3_5_forecast",
+                data={
+                    "n_features": len(FEATURE_COLS),
+                    "n_train": n,
+                    "horizon_periods": horizon_periods,
+                    "model": "tabpfn-3.5",
+                },
+            ):
+                reg.fit(train_feat[FEATURE_COLS], hist[:n])
+                test_pred = np.asarray(reg.predict(test_feat[FEATURE_COLS])).ravel()
+                horizon = _recursive_forecast(reg, feat.iloc[-1], hist, horizon_periods, step_days)
+            model_name = "tabpfn-3.5"
+            elapsed = round(time.perf_counter() - t0, 2)
+        except ImportError:
+            pass  # tabpfn not installed; naive fallback
+        except Exception as exc:  # keep the pipeline alive on model hiccups
+            model_name = f"tabpfn-error({type(exc).__name__})"
 
     if test_pred is None:
         test_pred = naive_test

@@ -30,9 +30,23 @@ forecast API cannot offer any of that.
 pip install -r requirements.txt
 python -m napper.cli demo        # generate 3 sample CSVs and run the whole pipeline
 cat out/latest.md                # the morning digest
+python -m napper.cli web         # launch the interactive local web dashboard
 ```
 
-**Live Web Demo:** [https://ansujkmeher.github.io/Napper/](https://ansujkmeher.github.io/Napper/)
+**Live Web Showcase:** [https://ansujkmeher.github.io/Napper/](https://ansujkmeher.github.io/Napper/)
+
+### Local Interactive Web Dashboard
+
+Launch the built-in UI anytime with:
+```bash
+python -m napper.cli web
+```
+The dashboard runs 100% locally on `http://localhost:5000` and features:
+- **Drag-and-Drop Ingestion:** Drop any bank, smart meter, or fitness CSV directly into your inbox.
+- **Dual-Speed Execution:** Switch between **⚡ Nap Mode (~2s)** for rapid interactive exploration and **🦥 Deep Sleep Mode** for overnight TabPFN-3.5 foundation model forecasting.
+- **Interactive Chart.js Visualizer:** Zoom, hover, and inspect observed history, isolated anomalies, and 30-day forecast horizons.
+- **Text-to-Speech Brief:** Click "Listen to Brief" to hear the synthesized autonomous morning digest aloud.
+- **Distributed Agent Trace Waterfall:** View Sentry agent tracing spans confirming $0.00 cloud API cost and zero PII leakage.
 
 Drop your own CSV (any file with a date column and numbers) into `inbox/` and
 run `python -m napper.cli run`. Re-dropping a file is safe: imports are

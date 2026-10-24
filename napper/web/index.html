@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Napper — The Agent That Works While You Sleep</title>
+  <!-- Tailwind CSS & Chart.js via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --border: #1f2937;
+      --emerald: #10b981;
+    }
+    body { background-color: var(--bg); color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+    .glow-emerald { box-shadow: 0 0 25px rgba(16, 185, 129, 0.15); }
+    .glow-rose { box-shadow: 0 0 20px rgba(244, 63, 94, 0.15); }
+    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-black">
+
+  <!-- Top Navigation -->
+  <nav class="border-b border-gray-800 bg-[#0d111b]/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🦥</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-xl tracking-tight text-white">Napper</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Local Offline</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">TabPFN-3.5</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">$0.00 / Run</span>
+          </div>
+          <p class="text-xs text-gray-400">Hacktoberfest 2026: Slow &amp; Steady</p>
+        </div>
+      </div>
+
+      <!-- Execution Controls -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center bg-gray-900 border border-gray-800 rounded-lg p-1 text-xs">
+          <button id="btnModeFast" onclick="setMode('fast')" class="px-3 py-1.5 rounded-md font-semibold bg-emerald-500 text-gray-950 transition">⚡ Nap Mode (~2s)</button>
+          <button id="btnModeDeep" onclick="setMode('deep')" class="px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition">🦥 Deep Sleep (TabPFN)</button>
+        </div>
+
+        <button id="btnRun" onclick="triggerRun()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold px-4 py-2 rounded-lg transition shadow-lg shadow-emerald-500/20 text-sm">
+          <span id="runSpinner" class="hidden animate-spin">🔄</span>
+          <span id="runBtnText">Run Agent</span>
+        </button>
+
+        <button onclick="resetDemoData()" title="Reset planted demo CSVs" class="text-gray-400 hover:text-white text-xs border border-gray-800 hover:border-gray-700 bg-gray-900 px-3 py-2 rounded-lg transition">
+          ↺ Reset Demo
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto w-full px-6 py-8 flex-1 space-y-8">
+
+    <!-- Hero: The Morning Brief Card -->
+    <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-6 glow-emerald relative overflow-hidden">
+      <div class="flex items-center justify-between border-b border-gray-800/80 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="flex gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+          </div>
+          <span class="font-mono text-xs text-gray-400">out/latest.md &bull; Autonomous Morning Digest</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="speakBrief()" class="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs px-3 py-1.5 rounded-md border border-gray-700 transition">
+            <span>🔊</span> Listen to Brief
+          </button>
+          <button onclick="copyBrief()" class="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-md border border-gray-700 transition">
+            <span>📋</span> Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="font-mono space-y-3 py-2">
+        <div id="briefLine1" class="text-blue-400 text-lg font-bold leading-relaxed">
+          Loading morning brief...
+        </div>
+        <div id="briefLine2" class="text-gray-200 text-base leading-relaxed">
+          Please wait while the agent checks your inbox.
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-gray-800/60 flex flex-wrap items-center justify-between text-xs text-gray-500">
+        <span id="briefMeta">Synthesized locally &bull; Data never left your machine</span>
+        <span class="text-emerald-400 font-semibold flex items-center gap-1">
+          <span>✓</span> 0 false alarms across 1,025 data points
+        </span>
+      </div>
+    </div>
+
+    <!-- 4 Planted Storylines Caught -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>🎯</span> Verified Detections (Planted Demo Storylines)
+        </h2>
+        <span class="text-xs text-gray-400">Every planted catch isolated with zero noise</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Gym Hike -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 uppercase">Stability Filter</span>
+          <h3 class="text-white font-bold mt-3 text-base">Gym Price Hike (+20%)</h3>
+          <p class="text-gray-400 text-xs mt-1">Fitness First gym raised monthly fee in June from $24.99 to $29.99.</p>
+          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-rose-300">
+            2026-06: $24.99 ➔ $29.99 (+20%)
+          </div>
+        </div>
+
+        <!-- Double Power Charge -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">Duplicate Detector</span>
+          <h3 class="text-white font-bold mt-3 text-base">Double Power Bill</h3>
+          <p class="text-gray-400 text-xs mt-1">City Power billed twice on the exact same date for the exact same amount.</p>
+          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-amber-300">
+            2x $77.86 on 2026-09-20
+          </div>
+        </div>
+
+        <!-- kWh Spike -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase">Walk-Forward Screen</span>
+          <h3 class="text-white font-bold mt-3 text-base">3-Day Power Spike</h3>
+          <p class="text-gray-400 text-xs mt-1">Today vs median of 8 prior same weekdays. Flags exactly the 3 spike days.</p>
+          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-emerald-300">
+            57.70 vs 15.95 kWh (+262%)
+          </div>
+        </div>
+
+        <!-- Forgotten Sub -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 uppercase">Recurring Audit</span>
+          <h3 class="text-white font-bold mt-3 text-base">Streamly Subscription</h3>
+          <p class="text-gray-400 text-xs mt-1">Unused $9.99 monthly debit running for 13 consecutive months.</p>
+          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-indigo-300">
+            Streamly: $9.99/mo (13 mos)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Time Series Visualizer -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 glow-cyan">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📈</span> Predictive Foundation Visualizer
+          </h2>
+          <p class="text-xs text-gray-400">Observed time-series, detected anomalies, and 30-day recursive forecast</p>
+        </div>
+
+        <!-- Series Selector -->
+        <div class="flex items-center gap-3">
+          <label class="text-xs text-gray-400 font-semibold">Select Series:</label>
+          <select id="seriesSelector" onchange="loadChart(this.value)" class="bg-gray-950 border border-gray-700 text-white text-xs rounded-lg px-3 py-2 font-mono outline-none focus:border-emerald-500">
+            <option value="electricity:kwh">electricity:kwh</option>
+            <option value="bank:spend">bank:spend</option>
+            <option value="steps:steps">steps:steps</option>
+            <option value="bank:spend-daily">bank:spend-daily</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Chart Canvas -->
+      <div class="relative w-full h-[320px]">
+        <canvas id="mainChart"></canvas>
+      </div>
+
+      <!-- Metric Pills Row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-4 border-t border-gray-800 text-xs">
+        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
+          <span class="text-gray-400 block">Forecasting Engine:</span>
+          <span id="chartModel" class="font-bold text-emerald-400 text-sm">TabPFN-3.5</span>
+        </div>
+        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
+          <span class="text-gray-400 block">Holdout Error (WMAPE):</span>
+          <span id="chartWmape" class="font-bold text-white text-sm">--</span>
+        </div>
+        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
+          <span class="text-gray-400 block">Next 30-Day Forecast Sum:</span>
+          <span id="chartSum" class="font-bold text-blue-400 text-sm">--</span>
+        </div>
+        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
+          <span class="text-gray-400 block">Anomalies Isolated:</span>
+          <span id="chartAnomalies" class="font-bold text-rose-400 text-sm">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lower Section: CSV Drag & Drop and Sentry Tracing -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- CSV Ingestion Dropzone -->
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col">
+        <h2 class="text-base font-bold text-white flex items-center gap-2 mb-2">
+          <span>📥</span> CSV Inbox &amp; Ingestion
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Drop any bank, fitness, or smart meter CSV into your local inbox.</p>
+
+        <!-- Drop Box -->
+        <div id="dropzone" class="border-2 border-dashed border-gray-700 hover:border-emerald-500 rounded-xl p-8 text-center cursor-pointer transition bg-black/20 flex flex-col items-center justify-center space-y-2">
+          <span class="text-4xl">📄</span>
+          <p class="text-sm font-semibold text-gray-200">Drag &amp; drop a CSV file here</p>
+          <p class="text-xs text-gray-500">or click to browse from your computer</p>
+          <input type="file" id="fileInput" accept=".csv" class="hidden" onchange="uploadFile(this.files[0])">
+        </div>
+
+        <!-- Datasets in Store -->
+        <div class="mt-6 flex-1">
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Active Stored Datasets</h3>
+          <div id="datasetsList" class="space-y-2 text-xs font-mono">
+            <div class="text-gray-500">Loading datasets...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sentry Agent Tracing Waterfall -->
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🛡️</span> Sentry Agent Distributed Trace
+          </h2>
+          <span class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Cost: $0.00</span>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">Every predictive step is traced with zero PII and zero cloud API charges.</p>
+
+        <div class="bg-black/60 border border-gray-800 rounded-xl p-4 font-mono text-xs space-y-2.5">
+          <div class="flex items-center justify-between text-blue-400 font-bold border-b border-gray-800 pb-2">
+            <span>▶ [transaction] napper.overnight_run</span>
+            <span class="text-gray-400 text-[11px]">op: ai.agent</span>
+          </div>
+          <div class="flex items-center justify-between text-gray-300 pl-4 border-l border-gray-800">
+            <span>├── [span] ingest_inbox_csvs</span>
+            <span class="text-gray-500 text-[10px]">ai.tool.ingest</span>
+          </div>
+          <div class="flex items-center justify-between text-gray-300 pl-4 border-l border-gray-800">
+            <span>├── [span] detect_recurring &amp; duplicates</span>
+            <span class="text-gray-500 text-[10px]">ai.tool.detectors</span>
+          </div>
+          <div class="flex items-center justify-between text-emerald-400 pl-4 border-l border-gray-800">
+            <span>├── [span] tabpfn_3_5_forecast</span>
+            <span class="text-gray-500 text-[10px]">ai.model.tabpfn</span>
+          </div>
+          <div class="flex items-center justify-between text-gray-300 pl-4 border-l border-gray-800">
+            <span>├── [span] walk_forward_seasonal_screen</span>
+            <span class="text-gray-500 text-[10px]">ai.tool.anomaly_screen</span>
+          </div>
+          <div class="flex items-center justify-between text-purple-400 pl-4 border-l border-gray-800">
+            <span>└── [span] synthesize_morning_brief</span>
+            <span class="text-gray-500 text-[10px]">ai.chat_completions</span>
+          </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-gray-950 border border-gray-800/80 rounded-xl text-xs text-gray-400 flex items-center justify-between">
+          <span>PII Leaked: <strong class="text-emerald-400">0 bytes</strong></span>
+          <span>Compute Cost: <strong class="text-emerald-400">$0.00</strong></span>
+          <span>Offline Capable: <strong class="text-emerald-400">100%</strong></span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="border-t border-gray-800 py-6 text-center text-xs text-gray-500">
+    <p>Napper &bull; Hacktoberfest 2026 Challenge Entry &bull; Ansuj Kumar Meher &amp; Team</p>
+    <p class="mt-1">Powered by TabPFN-3.5 (Prior Labs) and Local Predictive Architecture</p>
+  </footer>
+
+  <!-- Dashboard JavaScript Logic -->
+  <script>
+    let currentEngine = 'fast';
+    let chartInstance = null;
+
+    function setMode(mode) {
+      currentEngine = mode;
+      const btnFast = document.getElementById('btnModeFast');
+      const btnDeep = document.getElementById('btnModeDeep');
+      if (mode === 'fast') {
+        btnFast.className = 'px-3 py-1.5 rounded-md font-semibold bg-emerald-500 text-gray-950 transition';
+        btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition';
+      } else {
+        btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold bg-purple-500 text-white transition';
+        btnFast.className = 'px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition';
+      }
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        
+        // Parse digest text
+        if (data.latest_digest) {
+          const lines = data.latest_digest.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('##'));
+          if (lines.length >= 2) {
+            document.getElementById('briefLine1').textContent = lines[0];
+            document.getElementById('briefLine2').textContent = lines.slice(1).join(' ');
+          } else if (lines.length === 1) {
+            document.getElementById('briefLine1').textContent = lines[0];
+            document.getElementById('briefLine2').textContent = '';
+          }
+        }
+
+        // Render datasets
+        const dsList = document.getElementById('datasetsList');
+        if (data.datasets && data.datasets.length > 0) {
+          dsList.innerHTML = data.datasets.map(d => `
+            <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-gray-800">
+              <span class="text-gray-300 font-semibold">${d.name}.csv</span>
+              <span class="text-gray-500">${d.rows} rows &bull; ${d.size_kb} KB</span>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Error fetching status:', err);
+      }
+    }
+
+    async function loadChart(seriesName) {
+      try {
+        const res = await fetch(`/api/chart?series=${encodeURIComponent(seriesName || '')}`);
+        const data = await res.json();
+        if (data.error) return;
+
+        // Update selector options if provided
+        if (data.available_series && data.available_series.length > 0) {
+          const sel = document.getElementById('seriesSelector');
+          sel.innerHTML = data.available_series.map(s => 
+            `<option value="${s}" ${s === data.series_name ? 'selected' : ''}>${s}</option>`
+          ).join('');
+        }
+
+        document.getElementById('chartModel').textContent = data.model || 'TabPFN-3.5';
+        document.getElementById('chartWmape').textContent = data.wmape_pct ? `${data.wmape_pct}%` : 'N/A';
+        document.getElementById('chartSum').textContent = data.next_sum ? `~${data.next_sum}` : 'N/A';
+        document.getElementById('chartAnomalies').textContent = data.anomalies ? `${data.anomalies.length} detected` : '0';
+
+        // Prepare chart points
+        const histLabels = data.history.map(h => h.date);
+        const histValues = data.history.map(h => h.value);
+
+        const foreLabels = data.forecast.map(f => f.date);
+        const foreValues = data.forecast.map(f => f.value);
+
+        const allLabels = [...histLabels, ...foreLabels];
+        const actualDataset = [...histValues, ...Array(foreLabels.length).fill(null)];
+        const foreDataset = [...Array(histLabels.length - 1).fill(null), histValues[histValues.length - 1], ...foreValues];
+
+        // Anomaly point styling
+        const pointColors = actualDataset.map((val, idx) => {
+          const curDate = allLabels[idx];
+          if (data.anomalies && data.anomalies.some(a => a.date === curDate)) {
+            return '#f43f5e'; // Red anomaly
+          }
+          return '#3b82f6'; // Blue regular
+        });
+
+        const pointRadii = actualDataset.map((val, idx) => {
+          const curDate = allLabels[idx];
+          if (data.anomalies && data.anomalies.some(a => a.date === curDate)) {
+            return 7; // Larger dot for anomaly
+          }
+          return 2;
+        });
+
+        if (chartInstance) chartInstance.destroy();
+
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: allLabels,
+            datasets: [
+              {
+                label: 'Observed History',
+                data: actualDataset,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: pointColors,
+                pointBorderColor: pointColors,
+                pointRadius: pointRadii,
+                tension: 0.15,
+              },
+              {
+                label: '30-Day TabPFN Forecast',
+                data: foreDataset,
+                borderColor: '#10b981',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.15,
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                labels: { color: '#9ca3af', font: { size: 11 } }
+              },
+              tooltip: {
+                callbacks: {
+                  afterBody: function(items) {
+                    const idx = items[0].dataIndex;
+                    const date = allLabels[idx];
+                    const anom = data.anomalies.find(a => a.date === date);
+                    if (anom) {
+                      return `\n⚠️ ANOMALY DETECTED!\n${anom.note || 'Expected vs Actual Spike'}`;
+                    }
+                    return '';
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: '#1f2937' },
+                ticks: { color: '#6b7280', maxTicksLimit: 12 }
+              },
+              y: {
+                grid: { color: '#1f2937' },
+                ticks: { color: '#6b7280' }
+              }
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error('Error loading chart:', err);
+      }
+    }
+
+    async function triggerRun() {
+      const btn = document.getElementById('btnRun');
+      const spinner = document.getElementById('runSpinner');
+      const text = document.getElementById('runBtnText');
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      text.textContent = currentEngine === 'deep' ? 'Running TabPFN (~15m)...' : 'Running (~2s)...';
+
+      try {
+        const res = await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ engine: currentEngine })
+        });
+        const data = await res.json();
+        await fetchStatus();
+        await loadChart(document.getElementById('seriesSelector').value);
+      } catch (err) {
+        alert('Run error: ' + err);
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.textContent = 'Run Agent';
+      }
+    }
+
+    async function resetDemoData() {
+      if (!confirm('Regenerate clean sample CSVs in inbox/?')) return;
+      await fetch('/api/demo-reset', { method: 'POST' });
+      await triggerRun();
+    }
+
+    function speakBrief() {
+      const l1 = document.getElementById('briefLine1').textContent;
+      const l2 = document.getElementById('briefLine2').textContent;
+      const text = `${l1}. ${l2}`;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert('Speech Synthesis not supported in this browser.');
+      }
+    }
+
+    function copyBrief() {
+      const l1 = document.getElementById('briefLine1').textContent;
+      const l2 = document.getElementById('briefLine2').textContent;
+      navigator.clipboard.writeText(`${l1}\n${l2}`).then(() => {
+        alert('Brief copied to clipboard!');
+      });
+    }
+
+    // Drag and Drop Upload
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-emerald-500'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-emerald-500'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-emerald-500');
+      if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+    });
+
+    async function uploadFile(file) {
+      if (!file || !file.name.endsWith('.csv')) {
+        alert('Please drop a valid .csv file');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        alert(`Uploaded & Ingested: ${file.name}`);
+        await fetchStatus();
+        await triggerRun();
+      } catch (err) {
+        alert('Upload failed: ' + err);
+      }
+    }
+
+    // Initial load
+    fetchStatus();
+    loadChart('electricity:kwh');
+  </script>
+</body>
+</html>

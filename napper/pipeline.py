@@ -28,10 +28,10 @@ def discover_columns(df: pd.DataFrame):
     return date_col, text_cols, num_cols
 
 
-def build_series(df: pd.DataFrame, date_col, text_cols, num_cols, dataset: str) -> list[dict]:
+def build_series(df: pd.DataFrame, date_col, text_cols, num_cols, dataset: str, engine: str = "auto") -> list[dict]:
     """Forecast series per dataset.
 
-    Bank-like data (text descriptions + an amount column) forecasts weekly
+    Bank-like data (text descriptions + an amount column) forecasts monthly
     spend, which keeps the holdout metrics sane. Its anomaly screen is off:
     monthly bills drift across weekdays, which breaks same-weekday screens.
     Recurring + duplicate detectors cover that ground instead. Generic CSVs
@@ -69,8 +69,8 @@ def build_series(df: pd.DataFrame, date_col, text_cols, num_cols, dataset: str) 
         )
         # daily diagnostic: only meaningful with the real TabPFN engine, which
         # can learn day-of-month patterns (rent day etc.) that the naive
-        # baseline cannot. Skipped when tabpfn is not installed.
-        if fc.has_tabpfn():
+        # baseline cannot. Skipped when tabpfn is not installed or in fast mode.
+        if fc.has_tabpfn() and engine not in ("naive", "fast"):
             g = daily.asfreq("D").fillna(0.0)
             series.append(
                 {
@@ -94,11 +94,11 @@ def build_series(df: pd.DataFrame, date_col, text_cols, num_cols, dataset: str) 
     return series
 
 
-def run() -> dict:
+def run(engine: str = "auto") -> dict:
     tracing.init_tracing()
     t0 = datetime.now()
 
-    with tracing.trace_step("ai.agent", "napper.overnight_run"):
+    with tracing.trace_step("ai.agent", f"napper.run:{engine}"):
         with tracing.trace_step("ai.tool.ingest", "ingest_inbox_csvs", data={"inbox": str(config.INBOX)}):
             imported = ingest.ingest_all()
 
@@ -108,6 +108,7 @@ def run() -> dict:
             "events": [],
             "digest": None,
             "digest_writer": "template",
+            "engine": engine,
         }
 
         for store in sorted(config.STORE.glob("*.csv")):
@@ -138,13 +139,13 @@ def run() -> dict:
                         )
                     except Exception as exc:
                         summary["events"].append({"type": "error", "message": f"{store.name} duplicates: {exc}"})
-            for spec in build_series(df, date_col, text_cols, num_cols, dataset):
+            for spec in build_series(df, date_col, text_cols, num_cols, dataset, engine=engine):
                 result: dict = {"name": spec["name"], "unit": spec["unit"]}
                 try:
                     with tracing.trace_step(
                         "ai.pipeline.forecast_series",
                         f"forecast:{spec['name']}",
-                        data={"series": spec["name"], "unit": spec["unit"]},
+                        data={"series": spec["name"], "unit": spec["unit"], "engine": engine},
                     ):
                         result.update(
                             fc.forecast(
@@ -154,6 +155,7 @@ def run() -> dict:
                                 step_days=spec.get("step_days", 1),
                                 period_lag=spec.get("period_lag", 7),
                                 anomaly_screen=not spec.get("skip_anomaly_screen", False),
+                                engine=engine,
                             )
                         )
                 except Exception as exc:

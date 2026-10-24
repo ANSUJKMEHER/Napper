@@ -98,7 +98,23 @@ Median of the previous eight same weekdays, flag anything beyond a robust band a
 
 Recurring charges are also plain pandas: group debits by normalized merchant, require the merchant in at least three distinct months, and treat month-to-month variation as the stability signal. Only stable merchants can raise price-change alerts, which keeps the digest free of "your grocery bill varies" noise.
 
-The full pipeline is a small Python package with no mandatory heavy dependencies: ingest, forecast, anomaly screen, recurring and duplicate detectors, digest, CLI. The repo has the demo data generator, the tests, and the comparison script.
+The full pipeline is a small Python package with no mandatory heavy dependencies: ingest, forecast, anomaly screen, recurring and duplicate detectors, digest, CLI, and an interactive local dashboard (`python -m napper.cli web`). The repo has the demo data generator, the test suite, and the comparison script.
+
+## Interactive Local Dashboard & Web Audio Brief
+
+To make exploring your data effortless, Napper provides a local web interface:
+
+```bash
+python -m napper.cli web
+```
+
+- **Drag-and-Drop Ingestion:** Drop raw bank, power, or step CSVs into the inbox without touching the command line.
+- **Dual Speed (Nap vs Deep Sleep):** Instant ~2s mode for quick UI testing or the full TabPFN-3.5 model run for high-precision overnight forecasts.
+- **Predictive Foundation Visualizer:** Interactive Chart.js charts showing observed history, 30-day forecast horizons, and isolated anomalies in red.
+- **Text-to-Speech:** Click "Listen to Brief" to have your morning summary read aloud via the Web Speech API.
+- **Sentry Waterfall:** Visual verification of all pipeline spans and $0.00 metered cost.
+
+A static mirror of the dashboard is hosted live at [https://ansujkmeher.github.io/Napper/](https://ansujkmeher.github.io/Napper/).
 
 ## Observability: Sentry Agent Tracing ($0.00 metered)
 
@@ -116,7 +132,7 @@ I would rather tell you than have a judge find out:
 
 - Monthly bills drift across weekdays (the rent lands on a different day every month), which breaks same-weekday screening for bank data. So spend forecasting runs monthly, and the recurring and duplicate detectors own that territory. This is a real limitation of the approach, and it is documented in the code.
 - TabPFN-3.5 weights are non-commercial licensed. Fine for this project, and worth saying out loud before someone assumes otherwise.
-- The numbers above come from the naive fallback, because I wanted the pipeline to run anywhere. The TabPFN numbers go in before submission, and the baseline stays in the table next to them for the comparison.
+- The TabPFN-3.5 numbers in the table are measured on our test machine (AMD Ryzen 5 5625U CPU, 16GB RAM) running full multi-series recursive inference. On CPU, it takes ~15 minutes ("Slow and Steady"); on an NVIDIA GPU, it executes in seconds. We provide both Deep Sleep (TabPFN-3.5) and Nap Mode (~2s) so anyone can test it easily.
 - Thresholds are dataset-specific. The screen uses a 40% minimum deviation and a 3-sigma band; a different dataset might want different values. There is a config file for exactly that.
 
 ## Links

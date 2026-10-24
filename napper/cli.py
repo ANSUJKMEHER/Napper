@@ -17,7 +17,8 @@ def cmd_init(args):
 
 
 def cmd_run(args):
-    summary = pipeline.run()
+    engine = getattr(args, "engine", "auto")
+    summary = pipeline.run(engine=engine)
     print("\n=== NAPPER RUN ===")
     if summary["imported"]:
         for row in summary["imported"]:
@@ -34,7 +35,12 @@ def cmd_run(args):
         print(f"! event: {ev.get('message', ev)}")
     print("\n--- digest ---")
     print(summary["digest"])
-    print(f"\n(digest writer: {summary['digest_writer']}; {summary['elapsed_seconds']}s)")
+    print(f"\n(digest writer: {summary['digest_writer']}; {summary.get('elapsed_seconds', 0)}s)")
+
+
+def cmd_web(args):
+    from . import server
+    server.serve(port=args.port, open_browser=not args.no_browser)
 
 
 def cmd_demo(args):
@@ -59,11 +65,22 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="napper", description="The agent that works while you sleep.")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init", help="create the folder layout").set_defaults(func=cmd_init)
-    sub.add_parser("run", help="one full overnight run (ingest + forecast + digest)").set_defaults(func=cmd_run)
+    
+    r = sub.add_parser("run", help="one full overnight run (ingest + forecast + digest)")
+    r.add_argument("--engine", choices=["auto", "fast", "deep", "naive"], default="auto", help="engine speed/model")
+    r.set_defaults(func=cmd_run)
+    
     sub.add_parser("demo", help="generate sample data and run").set_defaults(func=cmd_demo)
+    
     w = sub.add_parser("watch", help="loop run() every N minutes")
     w.set_defaults(func=cmd_watch)
     w.add_argument("--minutes", type=int, default=60)
+    
+    web_p = sub.add_parser("web", help="launch local interactive web dashboard")
+    web_p.add_argument("--port", type=int, default=5000, help="port to bind server to")
+    web_p.add_argument("--no-browser", action="store_true", help="do not auto-open browser")
+    web_p.set_defaults(func=cmd_web)
+    
     args = parser.parse_args(argv)
     args.func(args)
     return 0
