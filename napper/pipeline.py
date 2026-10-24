@@ -94,7 +94,7 @@ def build_series(df: pd.DataFrame, date_col, text_cols, num_cols, dataset: str, 
     return series
 
 
-def run(engine: str = "auto") -> dict:
+def run(engine: str = "auto", datasets: list[str] | None = None) -> dict:
     tracing.init_tracing()
     t0 = datetime.now()
 
@@ -109,9 +109,12 @@ def run(engine: str = "auto") -> dict:
             "digest": None,
             "digest_writer": "template",
             "engine": engine,
+            "selected_datasets": datasets,
         }
 
         for store in sorted(config.STORE.glob("*.csv")):
+            if datasets and (store.stem not in datasets and store.name not in datasets):
+                continue
             try:
                 df = pd.read_csv(store, encoding="utf-8-sig")
             except Exception as exc:

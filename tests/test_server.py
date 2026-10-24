@@ -14,6 +14,22 @@ def test_server_stored_datasets():
     assert "bank" in names
     assert "electricity" in names
     assert "steps" in names
+    assert "domain" in datasets[0]
+    assert "highlight" in datasets[0]
+
+
+def test_pipeline_dataset_filtering():
+    from napper import pipeline, config
+    orig_latest = (config.OUT / "latest.md").read_text(encoding="utf-8") if (config.OUT / "latest.md").exists() else None
+    try:
+        summary = pipeline.run(engine="fast", datasets=["water"])
+        series_names = [s["name"] for s in summary.get("series", [])]
+        assert all("water" in name for name in series_names)
+        assert not any("electricity" in name for name in series_names)
+        assert not any("bank" in name for name in series_names)
+    finally:
+        if orig_latest is not None:
+            (config.OUT / "latest.md").write_text(orig_latest, encoding="utf-8")
 
 
 def test_server_chart_data():

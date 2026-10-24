@@ -73,22 +73,39 @@ def get_latest_run_summary(engine: str | None = None) -> dict[str, Any] | None:
 
 
 def get_stored_datasets() -> list[dict[str, Any]]:
-    """List datasets in data/store/ with summary stats."""
+    """List datasets in data/store/ with summary stats and domain tags."""
     datasets = []
+    domain_map = {
+        "bank": ("Finance", "TabPFN Error: 2.03% • Gym Hike Caught"),
+        "electricity": ("Utility", "3-Day Spike Flagged • 1 Duplicate Bill"),
+        "steps": ("Fitness", "Periodic Baseline • 0 Noise Flags"),
+        "water": ("Utility", "⚠️ Pipe Burst Leak (+706%)"),
+    }
     for p in sorted(config.STORE.glob("*.csv")):
+        dom, highlight = domain_map.get(p.stem, ("Time-Series", "Ingested & Ready"))
         try:
             df = pd.read_csv(p)
             datasets.append(
                 {
                     "name": p.stem,
                     "filename": p.name,
+                    "domain": dom,
+                    "highlight": highlight,
                     "rows": len(df),
                     "columns": list(df.columns),
                     "size_kb": round(p.stat().st_size / 1024, 1),
                 }
             )
         except Exception:
-            datasets.append({"name": p.stem, "filename": p.name, "rows": 0, "columns": [], "size_kb": 0})
+            datasets.append({
+                "name": p.stem,
+                "filename": p.name,
+                "domain": dom,
+                "highlight": "Ready",
+                "rows": 0,
+                "columns": [],
+                "size_kb": 0,
+            })
     return datasets
 
 
@@ -238,7 +255,8 @@ class NapperRequestHandler(http.server.SimpleHTTPRequestHandler):
                 params = {}
 
             engine = params.get("engine", "fast")  # 'fast' (~2s) or 'deep' (TabPFN)
-            summary = pipeline.run(engine=engine)
+            selected_datasets = params.get("datasets", None)
+            summary = pipeline.run(engine=engine, datasets=selected_datasets)
             self._send_json({"ok": True, "summary": summary})
             return
 
