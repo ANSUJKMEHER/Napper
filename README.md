@@ -124,7 +124,8 @@ open-weight model, used here via Ollama.
 
 ## Team
 
-[fill in DEV handles, max 4]
+- **Ansuj Kumar Meher** ([@ANSUJKMEHER](https://github.com/ANSUJKMEHER))
+
 
 _Repo created inside the Hacktoberfest Week 3 challenge window (Oct 19-25, 2026)._
 _Any commits after the submission deadline will be listed here._
