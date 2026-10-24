@@ -102,7 +102,7 @@
       <a href="#detections-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">STORYLINES</a>
       <a href="#benchmark-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">BENCHMARK</a>
       <a href="#sentry-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">SENTRY TRACE</a>
-      <a href="#inbox-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 mr-2">DATASETS &amp; ROI</a>
+      <a href="#inbox-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 mr-2">INBOX</a>
 
       
       <!-- Engine Switcher & Run Controls -->
@@ -540,17 +540,17 @@
   </section>
 
   
-  <!-- ================= SECTION 6: DATASET SELECTION & ECONOMIC ARITHMETIC ================= -->
+  <!-- ================= SECTION 6: DATASET SELECTION & CSV INBOX ================= -->
   <section id="inbox-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-12 border-t border-slate-200/80">
     
-    <!-- Top Value Header -->
+    <!-- Top Header -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-orange-50 text-orange-600 border border-orange-200 mb-2">
-          GRANULAR DATASET CONTROLS &bull; LOCAL STORE
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 mb-2">
+          LOCAL REPOSITORY &bull; data/store/
         </div>
-        <h2 class="text-2xl font-bold text-slate-950 tracking-tight">Active Datasets &amp; Analysis Scope</h2>
-        <p class="text-xs text-slate-500 mt-1">Select specific datasets for targeted analysis, or trigger an overnight scan across all files</p>
+        <h2 class="text-2xl font-bold text-slate-950 tracking-tight">Active Datasets &amp; Selective Analysis</h2>
+        <p class="text-xs text-slate-500 mt-1">Select specific datasets for targeted forecasting, or run the overnight pipeline across all files</p>
       </div>
 
       <!-- Multi-Dataset Batch Controls -->
@@ -579,81 +579,52 @@
             <span class="text-xs text-slate-500 font-mono" id="activeDataCount">4 Datasets &bull; 1,110 Rows</span>
           </div>
 
-          <!-- Datasets dynamic list container with checkboxes and action buttons -->
+          <!-- Dynamic dataset list with checkboxes and action buttons -->
           <div id="datasetsList" class="space-y-3 font-mono">
             <div class="text-slate-400 text-xs">Loading stored datasets...</div>
           </div>
         </div>
 
-        <!-- Dropzone Footer -->
-        <div class="mt-6 pt-5 border-t border-slate-100">
-          <div id="dropzone" class="border-2 border-dashed border-slate-200 hover:border-orange-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-50 hover:bg-orange-50/20 flex items-center justify-center gap-4 group">
-            <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-xl group-hover:scale-110 transition">
-              📄
-            </div>
-            <div class="text-left">
-              <p class="text-xs font-bold text-slate-800">Drop additional CSVs to add to this store</p>
-              <p class="text-[11px] text-slate-500">Auto-identifies dates &amp; numbers &bull; Zero cloud upload</p>
-            </div>
-            <input type="file" id="fileInput" accept=".csv" multiple class="hidden" onchange="uploadFiles(this.files)">
-          </div>
+        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <span>Click checkboxes to configure batch run</span>
+          <span>Fast engine ~2s &bull; Deep TabPFN</span>
         </div>
       </div>
 
-      <!-- The $200 Value Proposition & ROI Arithmetic (5 cols) -->
-      <div class="lg:col-span-5 card-clean rounded-2xl p-7 flex flex-col justify-between border-t-4 border-t-orange-500 bg-gradient-to-b from-white to-slate-50/50">
+      <!-- CSV Upload Dropzone (5 cols) -->
+      <div class="lg:col-span-5 card-clean rounded-2xl p-7 flex flex-col justify-between">
         <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded border border-orange-200">
-              Commercial &amp; Challenge Impact
-            </span>
-            <span class="text-xs font-mono font-extrabold text-slate-900">$948+ Annual Value</span>
+          <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">Ingest New Data</h3>
+            <span class="text-xs text-slate-500 font-mono">inbox/*.csv</span>
           </div>
 
-          <h3 class="text-lg font-extrabold text-slate-950 tracking-tight">Why Someone Gives $200 (The ROI Arithmetic)</h3>
-          <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-            Hackathon judges reward real economic payoff, not toy demos. Napper replaces expensive cloud software and catches catastrophic real-world billing leaks.
-          </p>
-
-          <div class="mt-5 space-y-3.5 text-xs font-mono">
-            <!-- ROI Item 1 -->
-            <div class="p-3 rounded-xl border border-cyan-200 bg-cyan-50/60">
-              <div class="flex items-center justify-between font-bold text-cyan-950">
-                <span class="flex items-center gap-1.5"><span>💧</span> Water Pipe Burst Prevention</span>
-                <span class="text-cyan-700">+$450 Saved</span>
-              </div>
-              <p class="text-[11px] text-cyan-800 mt-1 leading-relaxed font-sans">
-                A 425L/day pipe burst caught on Day 1 (+706% alert) prevents hundreds of dollars in water bills and thousands in home flood damage.
-              </p>
+          <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-8 text-center cursor-pointer transition bg-slate-50 hover:bg-orange-50/20 flex flex-col items-center justify-center space-y-3 group">
+            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-3xl group-hover:scale-110 transition duration-200">
+              📄
             </div>
-
-            <!-- ROI Item 2 -->
-            <div class="p-3 rounded-xl border border-amber-200 bg-amber-50/60">
-              <div class="flex items-center justify-between font-bold text-amber-950">
-                <span class="flex items-center gap-1.5"><span>⚡</span> Silent Hike &amp; Duplicate Defense</span>
-                <span class="text-amber-700">+$138 / yr</span>
-              </div>
-              <p class="text-[11px] text-amber-800 mt-1 leading-relaxed font-sans">
-                Catches gym membership price hikes ($24.99 &rarr; $29.99) and identical double billings ($77.86 x2) buried in 300+ line statement CSVs.
-              </p>
+            <div>
+              <p class="text-sm font-bold text-slate-800">Drag &amp; drop CSV files here</p>
+              <p class="text-xs text-slate-500 mt-0.5">or click to browse from your computer</p>
             </div>
+            <input type="file" id="fileInput" accept=".csv" multiple class="hidden" onchange="uploadFiles(this.files)">
+          </div>
 
-            <!-- ROI Item 3 -->
-            <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/60">
-              <div class="flex items-center justify-between font-bold text-emerald-950">
-                <span class="flex items-center gap-1.5"><span>🔒</span> Zero Cloud API &amp; SaaS Fees</span>
-                <span class="text-emerald-700">+$360 / yr</span>
-              </div>
-              <p class="text-[11px] text-emerald-800 mt-1 leading-relaxed font-sans">
-                Cloud anomaly and forecasting tools charge $30/mo AND upload your private banking CSVs to the cloud. Napper costs $0.00 and stays on-device.
-              </p>
+          <div class="mt-5 space-y-2 text-xs text-slate-600 font-mono">
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-500">✓</span> Auto-detects dates, timestamps &amp; numeric metrics
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-500">✓</span> Deduplicated by SHA-256 hash before storage
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-500">✓</span> 100% offline &bull; No remote upload
             </div>
           </div>
         </div>
 
-        <div class="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-[11px] font-mono text-slate-500">
-          <span>Net Annual Benefit: <strong>$948+</strong></span>
-          <span class="text-emerald-600 font-bold">100% Offline ROI</span>
+        <div class="mt-5 pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400">
+          Stored at <code class="text-slate-600 bg-slate-100 px-1 py-0.5 rounded">data/store/*.csv</code>
         </div>
       </div>
 
