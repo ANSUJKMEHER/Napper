@@ -41,8 +41,8 @@
       <!-- Execution Controls -->
       <div class="flex items-center gap-3">
         <div class="flex items-center bg-gray-900 border border-gray-800 rounded-lg p-1 text-xs">
-          <button id="btnModeFast" onclick="setMode('fast')" class="px-3 py-1.5 rounded-md font-semibold bg-emerald-500 text-gray-950 transition">⚡ Nap Mode (~2s)</button>
-          <button id="btnModeDeep" onclick="setMode('deep')" class="px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition">🦥 Deep Sleep (TabPFN)</button>
+          <button id="btnModeFast" onclick="setMode('fast')" class="px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition">⚡ Nap Mode (~2s)</button>
+          <button id="btnModeDeep" onclick="setMode('deep')" class="px-3 py-1.5 rounded-md font-semibold bg-purple-600 text-white transition">🦥 Deep Sleep (TabPFN)</button>
         </div>
 
         <button id="btnRun" onclick="triggerRun()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold px-4 py-2 rounded-lg transition shadow-lg shadow-emerald-500/20 text-sm">
@@ -69,7 +69,8 @@
             <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
             <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
           </div>
-          <span class="font-mono text-xs text-gray-400">out/latest.md &bull; Autonomous Morning Digest</span>
+          <span class="font-mono text-xs text-gray-400">Autonomous Morning Digest</span>
+          <span id="briefEngineBadge" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">🦥 Deep Sleep (TabPFN-3.5)</span>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="speakBrief()" class="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs px-3 py-1.5 rounded-md border border-gray-700 transition">
@@ -280,7 +281,7 @@
 
   <!-- Dashboard JavaScript Logic -->
   <script>
-    let currentEngine = 'fast';
+    let currentEngine = 'deep';
     let chartInstance = null;
 
     function setMode(mode) {
@@ -291,16 +292,30 @@
         btnFast.className = 'px-3 py-1.5 rounded-md font-semibold bg-emerald-500 text-gray-950 transition';
         btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition';
       } else {
-        btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold bg-purple-500 text-white transition';
+        btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold bg-purple-600 text-white transition';
         btnFast.className = 'px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition';
       }
+      fetchStatus();
+      loadChart();
     }
 
     async function fetchStatus() {
       try {
-        const res = await fetch('/api/status');
+        const res = await fetch(`/api/status?engine=${currentEngine}`);
         const data = await res.json();
         
+        // Update badge
+        const badge = document.getElementById('briefEngineBadge');
+        if (badge) {
+          if (data.engine === 'deep' || (data.latest_run && data.latest_run.series && data.latest_run.series.some(s => s.model && s.model.includes('tabpfn')))) {
+            badge.textContent = '🦥 Deep Sleep (TabPFN-3.5)';
+            badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20';
+          } else {
+            badge.textContent = '⚡ Nap Mode (Fast Baseline)';
+            badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+          }
+        }
+
         // Parse digest text
         if (data.latest_digest) {
           const lines = data.latest_digest.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('##'));
@@ -330,7 +345,8 @@
 
     async function loadChart(seriesName) {
       try {
-        const res = await fetch(`/api/chart?series=${encodeURIComponent(seriesName || '')}`);
+        const currentSel = seriesName || document.getElementById('seriesSelector')?.value || '';
+        const res = await fetch(`/api/chart?series=${encodeURIComponent(currentSel)}&engine=${currentEngine}`);
         const data = await res.json();
         if (data.error) return;
 
@@ -342,7 +358,15 @@
           ).join('');
         }
 
-        document.getElementById('chartModel').textContent = data.model || 'TabPFN-3.5';
+        const modelEl = document.getElementById('chartModel');
+        const modelName = data.model || 'TabPFN-3.5';
+        modelEl.textContent = modelName;
+        if (modelName.includes('tabpfn')) {
+          modelEl.className = 'font-bold text-purple-400 text-sm';
+        } else {
+          modelEl.className = 'font-bold text-gray-300 text-sm';
+        }
+
         document.getElementById('chartWmape').textContent = data.wmape_pct ? `${data.wmape_pct}%` : 'N/A';
         document.getElementById('chartSum').textContent = data.next_sum ? `~${data.next_sum}` : 'N/A';
         document.getElementById('chartAnomalies').textContent = data.anomalies ? `${data.anomalies.length} detected` : '0';
@@ -534,7 +558,7 @@
 
     // Initial load
     fetchStatus();
-    loadChart('electricity:kwh');
+    loadChart('bank:spend-daily');
   </script>
 </body>
 </html>

@@ -32,11 +32,37 @@ import pandas as pd
 from . import config, ingest, pipeline, sample_data
 
 
-def get_latest_run_summary() -> dict[str, Any] | None:
-    """Load the most recent run artifact from data/forecasts/."""
+def get_latest_run_summary(engine: str | None = None) -> dict[str, Any] | None:
+    """Load the most recent run artifact from data/forecasts/, optionally filtered by engine."""
     runs = sorted(config.FORECASTS.glob("run-*.json"), reverse=True)
     if not runs:
         return None
+
+    # If deep/tabpfn requested (or default), prefer the newest run that used TabPFN
+    if engine in ("deep", "tabpfn") or engine is None:
+        for p in runs:
+            try:
+                with p.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if any("tabpfn" in s.get("model", "") for s in data.get("series", [])):
+                        data["_filename"] = p.name
+                        return data
+            except Exception:
+                continue
+
+    # If fast/naive explicitly requested, find the newest naive run
+    if engine in ("fast", "naive"):
+        for p in runs:
+            try:
+                with p.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if all(s.get("model") == "naive-baseline" for s in data.get("series", [])):
+                        data["_filename"] = p.name
+                        return data
+            except Exception:
+                continue
+
+    # Fallback to newest run
     try:
         with runs[0].open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -66,9 +92,9 @@ def get_stored_datasets() -> list[dict[str, Any]]:
     return datasets
 
 
-def get_series_chart_data(series_name: str | None = None) -> dict[str, Any]:
-    """Extract chart data for a series from the latest run JSON."""
-    latest = get_latest_run_summary()
+def get_series_chart_data(series_name: str | None = None, engine: str | None = None) -> dict[str, Any]:
+    """Extract chart data for a series from the specified or latest run JSON."""
+    latest = get_latest_run_summary(engine)
     if not latest or not latest.get("series"):
         return {"error": "No forecast runs available yet. Run the agent first."}
 
@@ -77,8 +103,8 @@ def get_series_chart_data(series_name: str | None = None) -> dict[str, Any]:
     if series_name:
         target = next((s for s in series_list if s.get("name") == series_name), None)
     if not target:
-        # Default to electricity or bank:spend
-        target = next((s for s in series_list if "electricity" in s.get("name", "")), series_list[0])
+        # Default to bank:spend-daily if present (where TabPFN shines), otherwise first series
+        target = next((s for s in series_list if "spend-daily" in s.get("name", "")), series_list[0])
 
     s_name = target.get("name", "")
     dataset_name = s_name.split(":")[0] if ":" in s_name else s_name
@@ -169,14 +195,18 @@ class NapperRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         if path == "/api/status":
-            latest = get_latest_run_summary()
+            engine = query.get("engine", [None])[0]
+            latest = get_latest_run_summary(engine)
             digest_text = ""
-            latest_file = config.OUT / "latest.md"
-            if latest_file.exists():
-                digest_text = latest_file.read_text(encoding="utf-8").strip()
+            if latest and latest.get("digest"):
+                digest_text = latest["digest"]
+            elif (config.OUT / "latest.md").exists():
+                digest_text = (config.OUT / "latest.md").read_text(encoding="utf-8").strip()
 
+            active_engine = "deep" if latest and any("tabpfn" in s.get("model", "") for s in latest.get("series", [])) else "fast"
             resp = {
                 "status": "ready",
+                "engine": active_engine,
                 "latest_digest": digest_text,
                 "latest_run": latest,
                 "datasets": get_stored_datasets(),
@@ -188,7 +218,8 @@ class NapperRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         if path == "/api/chart":
             series_name = query.get("series", [None])[0]
-            data = get_series_chart_data(series_name)
+            engine = query.get("engine", [None])[0]
+            data = get_series_chart_data(series_name, engine=engine)
             self._send_json(data)
             return
 
