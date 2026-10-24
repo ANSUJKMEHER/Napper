@@ -69,17 +69,31 @@ def gemma_digest(prompt: str, model: str | None = None, url: str | None = None) 
 
 
 def _ranked_notes(forecasts: list[dict]) -> list[str]:
-    """Anomaly notes sorted by severity (biggest percent-off first)."""
+    """Anomaly notes sorted by severity (biggest percent-off first) with explicit dataset and unit labels."""
     notes = []
     for x in forecasts:
         s_name = x.get("name", "")
-        series_label = s_name.split(":")[0] if ":" in s_name else s_name
+        parts = s_name.split(":")
+        dataset = parts[0]
+        col_unit = parts[1] if len(parts) > 1 else x.get("unit", "")
+        unit_str = f" {col_unit}" if col_unit and col_unit not in ("amount", "none") else ""
+
         for a in x.get("history_anomalies", []):
-            raw_note = a.get("note", "")
-            if not raw_note.lower().startswith(series_label.lower()):
-                notes.append(f"{series_label}: {raw_note}")
+            dt = a.get("date", "")
+            act = a.get("actual")
+            exp = a.get("expected")
+            pct = a.get("off_pct")
+
+            if pct is not None and act is not None and exp is not None:
+                notes.append(
+                    f"{dataset} spike: {act:.1f}{unit_str} on {dt} (expected ~{exp:.1f}{unit_str}, +{pct:.0f}%)"
+                )
             else:
-                notes.append(raw_note)
+                raw_note = a.get("note", "")
+                if not raw_note.lower().startswith(dataset.lower()):
+                    notes.append(f"{dataset} spike: {raw_note}")
+                else:
+                    notes.append(raw_note)
     return sorted(notes, key=lambda n: _severity(n), reverse=True)
 
 

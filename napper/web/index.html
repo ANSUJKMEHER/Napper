@@ -319,11 +319,33 @@
         // Parse digest text
         if (data.latest_digest) {
           const lines = data.latest_digest.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('##'));
+          if (lines.length >= 1) {
+            document.getElementById('briefLine1').textContent = lines[0];
+          }
           if (lines.length >= 2) {
-            document.getElementById('briefLine1').textContent = lines[0];
-            document.getElementById('briefLine2').textContent = lines.slice(1).join(' ');
-          } else if (lines.length === 1) {
-            document.getElementById('briefLine1').textContent = lines[0];
+            const rawEvents = lines.slice(1).join(' ').split(';');
+            const eventsHtml = rawEvents.map(ev => {
+              const text = ev.trim();
+              if (!text) return '';
+              let icon = '⚠️';
+              let badgeClass = 'text-amber-300 border-amber-500/30 bg-amber-500/10';
+              if (text.includes('water')) {
+                icon = '💧';
+                badgeClass = 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10';
+              } else if (text.includes('power') || text.includes('electricity') || text.includes('kwh')) {
+                icon = '⚡';
+                badgeClass = 'text-yellow-300 border-yellow-500/30 bg-yellow-500/10';
+              } else if (text.includes('gym') || text.includes('price')) {
+                icon = '📈';
+                badgeClass = 'text-rose-300 border-rose-500/30 bg-rose-500/10';
+              }
+              return `<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium ${badgeClass} mr-2 mb-2">
+                <span>${icon}</span>
+                <span>${text}</span>
+              </div>`;
+            }).join('');
+            document.getElementById('briefLine2').innerHTML = eventsHtml;
+          } else {
             document.getElementById('briefLine2').textContent = '';
           }
         }

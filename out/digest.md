@@ -26,3 +26,11 @@ price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible du
 bank next month: ~1913.54 (local model naive-baseline, holdout error 1.77%).
 price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; water: 2026-10-19: 425.00 vs expected 52.75 (+706%)
 
+## 2026-10-25
+bank next month: ~1913.54 (local model naive-baseline, holdout error 1.77%).
+price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-10-19: 425.00 vs expected 52.75 (+706%)
+
+## 2026-10-25
+bank next month: ~1913.54 (local model naive-baseline, holdout error 1.77%).
+price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-10-19: 425.00 vs expected 52.75 (+706%)
+
