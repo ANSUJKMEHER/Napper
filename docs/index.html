@@ -1,633 +1,837 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Napper — The Agent That Works While You Sleep</title>
-  <meta name="description" content="Offline-first, open-weight predictive agent for Hacktoberfest 2026 Week 3: Slow and Steady. Powered by TabPFN-3.5 and Gemma.">
+  <title>Napper — The Autonomous Offline Predictive Agent</title>
+  
+  <!-- Tailwind CSS & Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#f97316',
+              amber: '#f59e0b',
+              emerald: '#10b981',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    :root {
-      --bg: #090d16;
-      --card-bg: #111827;
-      --card-border: #1f2937;
-      --accent: #10b981;
-      --accent-glow: rgba(16, 185, 129, 0.15);
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --indigo: #6366f1;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    /* Pixel Grid Banner Styling (Narv-style) */
+    .pixel-banner {
+      background-color: #0b0f19;
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .pixel-box-orange {
+      background-color: #f97316;
+      box-shadow: 0 0 16px rgba(249, 115, 22, 0.6);
+    }
+    .pixel-box-amber {
+      background-color: #d97706;
+      box-shadow: 0 0 12px rgba(217, 119, 6, 0.5);
+    }
+    .pixel-box-dark {
+      background-color: #1e293b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      line-height: 1.6;
-      padding: 0;
-      margin: 0;
-      -webkit-font-smoothing: antialiased;
+    /* Clean Card Elevation & Depth */
+    .card-clean {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    }
+    .card-clean-hover:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
     }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
+    /* Pill Navigation Styling */
+    .nav-pill-btn {
+      transition: all 0.15s ease-in-out;
     }
-
-    header {
-      text-align: center;
-      padding: 4rem 1rem 3rem;
-      border-bottom: 1px solid var(--card-border);
-      position: relative;
-      overflow: hidden;
-    }
-
-    header::before {
-      content: '';
-      position: absolute;
-      top: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 300px;
-      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--accent);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-    }
-
-    h1 {
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 1rem;
-      background: linear-gradient(to right, #ffffff, #9ca3af);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .subtitle {
-      font-size: 1.25rem;
-      color: var(--text-muted);
-      max-width: 680px;
-      margin: 0 auto 2rem;
-    }
-
-    .stats-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-
-    .stat-pill {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .stat-pill span { color: var(--accent); font-weight: 700; }
-
-    /* Digest Terminal Card */
-    .digest-box {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      overflow: hidden;
-      margin: 3rem 0;
-      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
-    }
-
-    .terminal-bar {
-      background: #161b22;
-      padding: 0.75rem 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #30363d;
-    }
-
-    .terminal-dots { display: flex; gap: 6px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
-    .dot-red { background: #ff5f56; }
-    .dot-yellow { background: #ffbd2e; }
-    .dot-green { background: #27c93f; }
-
-    .terminal-title {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .digest-content {
-      padding: 1.5rem;
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-      line-height: 1.7;
-    }
-
-    .digest-line1 { color: #58a6ff; font-weight: 600; margin-bottom: 0.75rem; }
-    .digest-line2 { color: #e6edf3; }
-    .digest-meta {
-      margin-top: 1rem;
-      padding-top: 0.75rem;
-      border-top: 1px dashed #30363d;
-      font-size: 0.8rem;
-      color: #8b949e;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* Grid of Catches */
-    .section-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin: 3rem 0 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .catches-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .catch-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 1.5rem;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .catch-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(255,255,255,0.2);
-    }
-
-    .catch-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      display: inline-block;
-      margin-bottom: 0.75rem;
-    }
-
-    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--rose); }
-    .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
-    .badge-accent { background: rgba(16, 185, 129, 0.15); color: var(--accent); }
-    .badge-indigo { background: rgba(99, 102, 241, 0.15); color: var(--indigo); }
-
-    .catch-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .catch-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
-    .catch-val {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      padding: 0.5rem;
-      background: #090d16;
-      border-radius: 6px;
-      border: 1px solid #1f2937;
-    }
-
-    /* Comparison Table */
-    .table-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      overflow-x: auto;
-      margin-bottom: 3rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th, td {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    th {
-      background: #161e2e;
-      font-weight: 700;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    td { font-size: 0.95rem; }
-    tr:last-child td { border-bottom: none; }
-    .highlight-cell {
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    /* Tracing Tree */
-    .tracing-container {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 3rem;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-    }
-
-    .trace-node {
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.4rem 0.6rem;
-      background: rgba(255,255,255,0.02);
-      border-radius: 4px;
-    }
-
-    .trace-node:hover { background: rgba(255,255,255,0.05); }
-    .trace-name { display: flex; align-items: center; gap: 0.5rem; }
-    .trace-tag { color: var(--accent); }
-    .trace-cost { color: #8b949e; font-size: 0.8rem; }
-
-    /* Interactive Chart Demo */
-    .chart-box {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .tab-bar {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 0.75rem;
-    }
-
-    .tab-btn {
-      background: transparent;
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active, .tab-btn:hover {
-      background: var(--accent);
-      color: #090d16;
-      border-color: var(--accent);
-    }
-
-    canvas {
-      width: 100%;
-      height: 280px;
-      display: block;
-    }
-
-    footer {
-      text-align: center;
-      padding: 3rem 1rem;
-      border-top: 1px solid var(--card-border);
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    .btn {
-      display: inline-block;
-      background: var(--accent);
-      color: #090d16;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      margin: 0.5rem;
-      transition: opacity 0.2s;
-    }
-
-    .btn:hover { opacity: 0.9; }
-    .btn-secondary {
-      background: #1f2937;
-      color: var(--text);
-      border: 1px solid #374151;
+    .nav-pill-btn:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
     }
   </style>
 </head>
-<body>
 
-  <header>
-    <div class="badge">🦥 Hacktoberfest 2026: Slow &amp; Steady</div>
-    <h1>Napper</h1>
-    <p class="subtitle">The offline agent that works while you sleep. Drop CSVs into a folder, wake up to a 2-line morning brief.</p>
-    
-    <div>
-      <a href="https://github.com/ANSUJKMEHER/Napper" class="btn" target="_blank">View GitHub Repo</a>
-      <a href="#demo" class="btn btn-secondary">Explore Demo</a>
+<body class="bg-[#f8fafc] text-slate-800 antialiased font-sans selection:bg-orange-500 selection:text-white min-h-screen flex flex-col">
+
+  <!-- ================= TOP PIXEL BANNER (NARV-STYLE) ================= -->
+  <div class="pixel-banner h-20 w-full relative overflow-hidden border-b border-slate-900/60 flex items-center justify-center">
+    <div class="absolute inset-0 max-w-[1400px] mx-auto pointer-events-none">
+      <div class="absolute top-2 left-1/4 w-6 h-6 pixel-box-amber rounded-sm opacity-80"></div>
+      <div class="absolute top-8 left-1/3 w-6 h-6 pixel-box-dark rounded-sm"></div>
+      <div class="absolute top-0 left-1/2 w-6 h-6 pixel-box-orange rounded-sm"></div>
+      <div class="absolute top-6 left-2/3 w-6 h-6 pixel-box-orange rounded-sm opacity-90"></div>
+      <div class="absolute top-2 right-1/4 w-6 h-6 pixel-box-amber rounded-sm opacity-60"></div>
+      <div class="absolute top-10 right-1/3 w-6 h-6 pixel-box-dark rounded-sm"></div>
     </div>
-
-    <div class="stats-bar">
-      <div class="stat-pill"><span>$0.00</span> Cost per Run</div>
-      <div class="stat-pill"><span>100%</span> Offline Execution</div>
-      <div class="stat-pill"><span>0 bytes</span> Data Leaked</div>
-      <div class="stat-pill"><span>TabPFN-3.5</span> Foundation Predictor</div>
-      <div class="stat-pill"><span>Gemma 3</span> Local LLM Digest</div>
-    </div>
-  </header>
-
-  <div class="container" id="demo">
-
-    <!-- The 2-Line Digest Box -->
-    <div class="digest-box">
-      <div class="terminal-bar">
-        <div class="terminal-dots">
-          <div class="dot dot-red"></div>
-          <div class="dot dot-yellow"></div>
-          <div class="dot dot-green"></div>
-        </div>
-        <div class="terminal-title">out/latest.md — 03:00 AM Morning Run</div>
-        <div style="font-size: 0.8rem; color: #8b949e;">Autonomous Run</div>
-      </div>
-      <div class="digest-content">
-        <div class="digest-line1">bank next month: ~1904.17 (local model TabPFN-3.5, holdout error 2.03%).</div>
-        <div class="digest-line2">price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-09-16: 57.70 vs expected 15.95 (+262%)</div>
-        <div class="digest-meta">
-          <span>Synthesized by local engine</span>
-          <span style="color: var(--accent);">✓ Zero noise flags across 1,025 data points</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4 Planted Storylines Caught -->
-    <h2 class="section-title">🔍 What Napper Caught On Demo Data</h2>
-    <div class="catches-grid">
-      <div class="catch-card">
-        <span class="catch-badge badge-rose">Recurring Stability Filter</span>
-        <h3 class="catch-title">Gym Price Hike (+20%)</h3>
-        <p class="catch-desc">Fitness First gym raised membership in June from $24.99 to $29.99/mo. Caught by tracking stable merchant variance.</p>
-        <div class="catch-val">2026-06: $24.99 ➔ $29.99 (+20%)</div>
-      </div>
-
-      <div class="catch-card">
-        <span class="catch-badge badge-amber">Duplicate Transaction Detector</span>
-        <h3 class="catch-title">Double Power Bill</h3>
-        <p class="catch-desc">City Power billed twice on the exact same date for the exact same amount. Model-free exact detection.</p>
-        <div class="catch-val">2x $77.86 on 2026-09-20</div>
-      </div>
-
-      <div class="catch-card">
-        <span class="catch-badge badge-accent">Walk-Forward Seasonal Screen</span>
-        <h3 class="catch-title">3-Day kWh Power Spike</h3>
-        <p class="catch-desc">Evaluates today against median of prior 8 same weekdays. Flags the 3 spike days (+262%) with zero false alarms.</p>
-        <div class="catch-val">57.70 vs 15.95 kWh (+262%)</div>
-      </div>
-
-      <div class="catch-card">
-        <span class="catch-badge badge-indigo">Recurring Subscription Audit</span>
-        <h3 class="catch-title">Forgotten Streamly Sub</h3>
-        <p class="catch-desc">Surfaced inactive recurring $9.99 charge running for 13 consecutive months. Human retains cancellation agency.</p>
-        <div class="catch-val">Streamly: $9.99/mo (13 months)</div>
-      </div>
-    </div>
-
-    <!-- Interactive Visualizer -->
-    <h2 class="section-title">📊 Time Series &amp; Forecast Visualizer</h2>
-    <div class="chart-box">
-      <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchSeries('electricity')">Electricity (kWh) — Spike Catch</button>
-        <button class="tab-btn" onclick="switchSeries('bank')">Bank Spend ($) — 30-Day Forecast</button>
-        <button class="tab-btn" onclick="switchSeries('steps')">Daily Steps — Walk Forward</button>
-      </div>
-      <canvas id="timeSeriesChart"></canvas>
-      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; display: flex; justify-content: space-between;">
-        <span id="chartLegend">● Observed Data &nbsp;&nbsp; <span style="color: #f43f5e;">● Planted Anomaly</span> &nbsp;&nbsp; <span style="color: #10b981;">--- TabPFN Recursive Forecast</span></span>
-        <span id="chartMetric">Holdout WMAPE: 19.62%</span>
-      </div>
-    </div>
-
-    <!-- Tortoise vs Hare -->
-    <h2 class="section-title">🐢 Tortoise vs. 🐇 Hare</h2>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Dimension</th>
-            <th>Hare (Closed Hosted API)</th>
-            <th style="color: var(--accent);">Tortoise (Napper, Local Open Stack)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Core Engine</strong></td>
-            <td>Proprietary cloud API (OpenAI / Cloud)</td>
-            <td class="highlight-cell">TabPFN-3.5 + Gemma 3 (Open Weights)</td>
-          </tr>
-          <tr>
-            <td><strong>Cost Per Overnight Run</strong></td>
-            <td>~$0.05 - $0.50 per query ($18 - $180/year)</td>
-            <td class="highlight-cell">$0.00 (Zero marginal cost forever)</td>
-          </tr>
-          <tr>
-            <td><strong>Data Privacy</strong></td>
-            <td>Bank statements &amp; health CSVs sent to cloud</td>
-            <td class="highlight-cell">100% Local. Nothing leaves your machine</td>
-          </tr>
-          <tr>
-            <td><strong>Offline / Airplane Mode</strong></td>
-            <td>Fails without internet connection</td>
-            <td class="highlight-cell">Works fully disconnected in airplane mode</td>
-          </tr>
-          <tr>
-            <td><strong>Model Auditability</strong></td>
-            <td>Black-box closed API with changing weights</td>
-            <td class="highlight-cell">Deterministic, swappable, inspectable weights</td>
-          </tr>
-          <tr>
-            <td><strong>Holdout Accuracy (Spend)</strong></td>
-            <td>Variable cloud baseline</td>
-            <td class="highlight-cell">1.77% Monthly WMAPE</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Sentry Agent Tracing -->
-    <h2 class="section-title">🛡️ Sentry Agent Tracing Architecture</h2>
-    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Every overnight agent run is fully observable via Sentry Distributed AI Tracing without transmitting PII or leaking raw statements.</p>
-    
-    <div class="tracing-container">
-      <div class="trace-node" style="font-weight: bold; color: #58a6ff;">
-        <div class="trace-name">▶ [transaction] napper.overnight_run</div>
-        <div class="trace-cost">op: ai.agent &bull; cost: $0.00</div>
-      </div>
-      <div class="trace-node" style="margin-left: 1.5rem;">
-        <div class="trace-name">├── [span] ingest_inbox_csvs (bank, electricity, steps)</div>
-        <div class="trace-cost">op: ai.tool.ingest</div>
-      </div>
-      <div class="trace-node" style="margin-left: 1.5rem;">
-        <div class="trace-name">├── [span] detect_recurring &amp; detect_duplicates</div>
-        <div class="trace-cost">op: ai.tool.detectors &bull; flags: 2</div>
-      </div>
-      <div class="trace-node" style="margin-left: 1.5rem;">
-        <div class="trace-name">├── [span] tabpfn_3_5_forecast (recursive horizon)</div>
-        <div class="trace-cost">op: ai.model.tabpfn &bull; cost: $0.00</div>
-      </div>
-      <div class="trace-node" style="margin-left: 1.5rem;">
-        <div class="trace-name">├── [span] walk_forward_seasonal_screen (8-weekday median)</div>
-        <div class="trace-cost">op: ai.tool.anomaly_screen &bull; flags: 3</div>
-      </div>
-      <div class="trace-node" style="margin-left: 1.5rem;">
-        <div class="trace-name">└── [span] ollama_gemma3_digest (two-line synthesis)</div>
-        <div class="trace-cost">op: ai.chat_completions &bull; cost: $0.00</div>
-      </div>
-    </div>
-
   </div>
 
-  <footer>
-    <p>Napper is an open-source entry for the <strong>Hacktoberfest 2026 Week 3 Challenge: Slow &amp; Steady</strong>.</p>
-    <p style="margin-top: 0.5rem;">Designed and built by <a href="https://github.com/ANSUJKMEHER" style="color: var(--accent); text-decoration: none;">Ansuj Kumar Meher</a> &amp; Team.</p>
-    <p style="margin-top: 1rem; font-size: 0.8rem; color: #6b7280;">TabPFN-3.5 weights licensed by Prior Labs for non-commercial research. Gemma weights by Google DeepMind.</p>
+
+  <!-- ================= FLOATING SEGMENTED NAVBAR (NARV-STYLE) ================= -->
+  <div class="sticky top-4 z-50 flex justify-center px-4 -mt-10 mb-8 pointer-events-none">
+    <nav class="inline-flex items-center rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xl shadow-slate-900/5 p-1 text-xs font-semibold text-slate-600 pointer-events-auto overflow-x-auto max-w-full">
+      
+      <!-- Brand Logo Pill -->
+      <a href="#hero" class="bg-black text-white px-3.5 py-1.5 rounded-lg font-mono font-bold tracking-wider flex items-center gap-1.5 shadow-sm mr-1">
+        <span>🦥</span>
+        <span>&lt;NAPPER&gt;</span>
+      </a>
+
+      <!-- Segmented Navigation Links -->
+      <a href="#brief-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">MORNING BRIEF</a>
+      <a href="#studio-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">PREDICTIVE STUDIO</a>
+      <a href="#detections-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">STORYLINES</a>
+      <a href="#benchmark-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">BENCHMARK</a>
+      <a href="#sentry-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 border-r border-slate-200/80">SENTRY TRACE</a>
+      <a href="#inbox-section" class="nav-pill-btn px-3 py-1.5 rounded-md hover:text-slate-900 mr-2">INBOX</a>
+
+      
+      <!-- Showcase Action Controls -->
+      <div class="flex items-center gap-2 pl-3 border-l border-slate-200">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          OFFLINE AGENT ACTIVE
+        </span>
+        <a href="https://github.com/ANSUJKMEHER/Napper" target="_blank" class="bg-slate-900 hover:bg-black text-white px-3 py-1.5 rounded-md font-bold transition text-[11px] font-mono flex items-center gap-1">
+          <span>GitHub</span>
+          <span>↗</span>
+        </a>
+      </div>
+
+    </nav>
+  </div>
+
+
+  <!-- ================= HERO SECTION (NARV-STYLE FULL PAGE) ================= -->
+  <section id="hero" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 pt-6 pb-16">
+    
+    <!-- Status Eyebrow Badge -->
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-slate-200 bg-white text-xs font-mono font-medium text-slate-600 mb-8 shadow-sm">
+      <span class="w-2 h-2 rounded-sm bg-orange-500"></span>
+      <span>PUBLIC CHALLENGE ENTRY &bull; HACKTOBERFEST 2026</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
+      
+      <!-- Left: Giant Editorial Typography (8 cols) -->
+      <div class="lg:col-span-8 space-y-6">
+        <h1 class="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-slate-950 leading-[1.05]">
+          The offline<br>
+          <span class="text-slate-400 font-light">[</span>
+          <span class="text-orange-500 px-1 font-black">Predictive Agent</span>
+          <span class="text-slate-400 font-light">]</span><br>
+          for lazy mornings.
+        </h1>
+
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed pt-2">
+          Drop your bank, electricity, or fitness CSVs into a local folder and go to bed. By morning, open-weight <strong>TabPFN-3.5</strong> foundation models forecast your next month and isolate every anomaly. Zero cloud bills. 100% private.
+        </p>
+      </div>
+
+      <!-- Right: KPI Stats & Launch Badges (4 cols) -->
+      <div class="lg:col-span-4 flex flex-col gap-6 lg:border-l lg:border-slate-200 lg:pl-8 pb-2">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="border-b lg:border-b-0 pb-4 lg:pb-0">
+            <div class="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">$0</div>
+            <div class="text-[11px] font-mono uppercase tracking-wider text-slate-500 mt-1">RUNTIME COST</div>
+          </div>
+          <div>
+            <div class="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">'26</div>
+            <div class="text-[11px] font-mono uppercase tracking-wider text-slate-500 mt-1">HACKTOBERFEST</div>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-100 border border-slate-200 text-xs space-y-2.5">
+          <div class="flex items-center justify-between text-slate-700">
+            <span class="font-semibold">Privacy Guarantee</span>
+            <span class="font-mono text-emerald-600 font-bold">0 Bytes Leaked</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-700">
+            <span class="font-semibold">Offline Status</span>
+            <span class="font-mono text-emerald-600 font-bold">100% Air-gapped</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-700">
+            <span class="font-semibold">False Alarms</span>
+            <span class="font-mono text-emerald-600 font-bold">0 Across 1,110 Pts</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Jump Command Bar (Narv / Flux Search-Style) -->
+    <div class="mt-10 pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-mono font-semibold">
+          <span>🔍</span>
+          <span>QUICK JUMP</span>
+        </div>
+        <span class="text-xs text-slate-500 font-mono hidden sm:inline">Inspect verified storylines:</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="selectSeriesAndScroll('water:liters')" class="px-3 py-1.5 rounded-lg border border-cyan-200 bg-cyan-50/70 hover:bg-cyan-100 text-cyan-800 text-xs font-mono font-semibold transition flex items-center gap-1.5">
+          <span>💧</span>
+          <span>Water Spike (+706%)</span>
+        </button>
+        <button onclick="selectSeriesAndScroll('electricity:kwh')" class="px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50/70 hover:bg-amber-100 text-amber-800 text-xs font-mono font-semibold transition flex items-center gap-1.5">
+          <span>⚡</span>
+          <span>Double Power Bill ($77.86)</span>
+        </button>
+        <button onclick="document.getElementById('detections-section').scrollIntoView({behavior: 'smooth'})" class="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-800 text-xs font-mono font-semibold transition flex items-center gap-1.5">
+          <span>📈</span>
+          <span>Gym Price Hike (+20%)</span>
+        </button>
+        <button onclick="selectSeriesAndScroll('bank:spend-daily')" class="px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50/70 hover:bg-purple-100 text-purple-800 text-xs font-mono font-semibold transition flex items-center gap-1.5">
+          <span>🦥</span>
+          <span>TabPFN Bank Forecast</span>
+        </button>
+        <button onclick="speakBrief()" class="px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-mono font-semibold transition flex items-center gap-1.5">
+          <span>🔊</span>
+          <span>Listen to Brief</span>
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ================= SECTION 1: AUTONOMOUS MORNING BRIEF ================= -->
+  <section id="brief-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-10">
+    <div class="card-clean rounded-2xl p-7 sm:p-9 border-l-4 border-l-orange-500 shadow-md">
+      
+      <!-- Card Header -->
+      <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-5 mb-6 gap-3">
+        <div class="flex items-center gap-3">
+          <div class="flex gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+            <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+          </div>
+          <span class="font-mono text-xs font-semibold text-slate-500">out/latest.md &bull; Autonomous Morning Digest</span>
+          <span id="briefEngineBadge" class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-orange-50 text-orange-600 border border-orange-200 font-mono">
+            🦥 Deep Sleep (TabPFN-3.5)
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="speakBrief()" class="flex items-center gap-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs px-3.5 py-1.5 rounded-lg border border-orange-200 font-semibold transition">
+            <span>🔊</span> Listen to Brief
+          </button>
+          <button onclick="copyBrief()" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3.5 py-1.5 rounded-lg border border-slate-200 font-semibold transition">
+            <span>📋</span> Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Digest Content Area -->
+      <div class="space-y-4">
+        <!-- Line 1: Primary Forecast Statement -->
+        <div class="flex items-start gap-3">
+          <span class="text-orange-500 text-base mt-0.5">❯</span>
+          <div id="briefLine1" class="font-mono text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            bank next month: ~1904.17 (local model tabpfn-3.5, holdout error 2.03%).
+          </div>
+        </div>
+
+        <!-- Line 2: Anomaly & Storyline Alert Chips -->
+        <div class="pl-6 pt-1 flex flex-wrap gap-2.5 items-center" id="briefLine2">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-cyan-200 bg-cyan-50 text-cyan-800 text-xs font-mono font-medium">
+            <span>💧</span>
+            <span>water spike: 425.0 liters on 2026-10-19 (expected ~52.8 liters, +706%)</span>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-xs font-mono font-medium">
+            <span>⚡</span>
+            <span>possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20</span>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 text-xs font-mono font-medium">
+            <span>📈</span>
+            <span>price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust Footer -->
+      <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2">
+        <span class="flex items-center gap-1.5 text-emerald-600 font-semibold" id="briefTrustStat">
+          <span>✓</span> 0 false alarms across 1,110 data points
+        </span>
+        <span>Synthesized locally &bull; Data never left your machine</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= SECTION 2: PREDICTIVE TIME-SERIES STUDIO ================= -->
+  <section id="studio-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-10 border-t border-slate-200/80">
+    <div class="card-clean rounded-2xl p-7 sm:p-9 shadow-sm">
+      
+      <!-- Studio Header & Series Switcher -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Predictive Time-Series Studio</h2>
+          <p class="text-xs text-slate-500 mt-1">Multi-horizon walk-forward forecasting &amp; seasonal outlier detection</p>
+        </div>
+
+        <!-- Series Selector Dropdown -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono text-slate-500 font-semibold">SERIES:</span>
+          <select id="seriesSelector" onchange="loadChart(this.value)" class="bg-white border border-slate-300 text-slate-800 text-xs font-mono font-bold rounded-lg px-3 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="bank:spend-daily">bank:spend-daily (TabPFN-3.5 30-Day Forecast)</option>
+            <option value="electricity:kwh">electricity:kwh (30-Day Smart Meter Forecast)</option>
+            <option value="steps:steps">steps:steps (30-Day Activity Forecast)</option>
+            <option value="water:liters">water:liters (Pipe Burst Anomaly Detection)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dynamic Metric Cards Banner -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="text-[10px] font-mono uppercase text-slate-400 font-bold">Forecasting Engine</div>
+          <div id="chartEngineModel" class="text-base font-extrabold text-slate-900 font-mono mt-0.5 truncate">tabpfn-3.5</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="text-[10px] font-mono uppercase text-slate-400 font-bold">Holdout Error (WMAPE)</div>
+          <div id="chartMetricWmape" class="text-base font-extrabold text-emerald-600 font-mono mt-0.5">56.34%</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="text-[10px] font-mono uppercase text-slate-400 font-bold">Next 30-Day Sum</div>
+          <div id="chartMetricSum" class="text-base font-extrabold text-slate-900 font-mono mt-0.5">~1904.17</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="text-[10px] font-mono uppercase text-slate-400 font-bold">Planted Spikes</div>
+          <div id="chartMetricAnomalies" class="text-base font-extrabold text-rose-600 font-mono mt-0.5">0</div>
+        </div>
+      </div>
+
+      <!-- Chart Canvas Container -->
+      <div class="relative w-full h-[460px] bg-slate-50/50 rounded-xl p-4 border border-slate-100">
+        <canvas id="forecastChart"></canvas>
+      </div>
+
+      <!-- Legend & Instructions -->
+      <div class="mt-4 flex flex-wrap items-center justify-between text-xs font-mono text-slate-500 gap-2">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-900"></span> Historical Truth</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-500"></span> 30-Day Forecast</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 ring-2 ring-rose-200"></span> Anomaly / Pipe Leak</span>
+        </div>
+        <span>Click legend items to toggle &bull; Hover points for detailed metrics</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= SECTION 3: STORYLINES GRID ================= -->
+  <section id="detections-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-10 border-t border-slate-200/80">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">Verified Detections &amp; Planted Catches</h2>
+        <p class="text-xs text-slate-500 mt-1">Four planted demo storylines isolated with zero false positives</p>
+      </div>
+      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+        Zero Noise Flags
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Gym Hike -->
+      <div class="card-clean card-clean-hover rounded-xl p-5 transition flex flex-col justify-between border-t-4 border-t-rose-500">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-200 uppercase font-mono">Stability Filter</span>
+            <span class="text-rose-600 text-xs font-mono font-bold">+20%</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm mt-2">Gym Price Hike</h3>
+          <p class="text-slate-500 text-xs mt-1 leading-relaxed">Fitness First gym raised monthly fee in June from $24.99 to $29.99.</p>
+        </div>
+        <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-rose-700 font-semibold">
+          2026-06: $24.99 ➔ $29.99
+        </div>
+      </div>
+
+      <!-- Double Power Charge -->
+      <div class="card-clean card-clean-hover rounded-xl p-5 transition flex flex-col justify-between border-t-4 border-t-amber-500">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 uppercase font-mono">Duplicate Detector</span>
+            <span class="text-amber-700 text-xs font-mono font-bold">2x Charge</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm mt-2">Double Power Bill</h3>
+          <p class="text-slate-500 text-xs mt-1 leading-relaxed">City Power billed twice on the exact same date for the exact same amount.</p>
+        </div>
+        <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-amber-800 font-semibold">
+          2x $77.86 on 2026-09-20
+        </div>
+      </div>
+
+      <!-- Power Spike -->
+      <div class="card-clean card-clean-hover rounded-xl p-5 transition flex flex-col justify-between border-t-4 border-t-emerald-500">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase font-mono">Walk-Forward Screen</span>
+            <span class="text-emerald-700 text-xs font-mono font-bold">+262%</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm mt-2">3-Day Power Spike</h3>
+          <p class="text-slate-500 text-xs mt-1 leading-relaxed">Today vs median of 8 prior same weekdays. Flags exactly the 3 spike days.</p>
+        </div>
+        <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-emerald-800 font-semibold">
+          57.70 vs 15.95 kWh (Sep 16)
+        </div>
+      </div>
+
+      <!-- Water Leak -->
+      <div class="card-clean card-clean-hover rounded-xl p-5 transition flex flex-col justify-between border-t-4 border-t-cyan-500">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 border border-cyan-200 uppercase font-mono">Seasonal Screen</span>
+            <span class="text-cyan-700 text-xs font-mono font-bold">+706%</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm mt-2">Water Pipe Burst</h3>
+          <p class="text-slate-500 text-xs mt-1 leading-relaxed">Planted pipe leak in water.csv spiking to 425L on Oct 18 &amp; 19.</p>
+        </div>
+        <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-cyan-800 font-semibold">
+          425.0 vs 52.8 L (Oct 19)
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ================= SECTION 4: TORTOISE VS HARE BENCHMARK ================= -->
+  <section id="benchmark-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-10 border-t border-slate-200/80">
+    <div class="card-clean rounded-2xl p-7 sm:p-9 shadow-sm">
+      
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Tortoise vs. Hare: Closed API vs. Open Foundation</h2>
+          <p class="text-xs text-slate-500 mt-1">Reproducible benchmark measured against GPT-4o-mini zero-shot prompting on the identical 30-day holdout window</p>
+        </div>
+        <span class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          TabPFN Beats GPT-4o-mini by ~3x
+        </span>
+      </div>
+
+      <!-- Benchmark Table -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+            <tr>
+              <th class="p-3.5 font-bold">Attribute</th>
+              <th class="p-3.5 text-rose-600 font-bold">Hare (Closed Hosted API: GPT-4o-mini)</th>
+              <th class="p-3.5 text-emerald-700 font-bold">Tortoise (Napper: TabPFN-3.5 Local)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Model Type</td>
+              <td class="p-3.5 text-slate-600">Proprietary Cloud API (gpt-4o-mini)</td>
+              <td class="p-3.5 text-emerald-700 font-bold">TabPFN-3.5 (Open-Weight Foundation Model)</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Cost Per Run</td>
+              <td class="p-3.5 text-rose-600 font-bold">~$0.0123 / run ($4.49 / yr)</td>
+              <td class="p-3.5 text-emerald-700 font-bold">$0.00 (Zero runtime bill)</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Data Privacy</td>
+              <td class="p-3.5 text-rose-600">❌ Bank CSV transmitted over public internet</td>
+              <td class="p-3.5 text-emerald-700 font-bold">✅ 100% Local (0 bytes transmitted)</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Offline Capable</td>
+              <td class="p-3.5 text-rose-600">❌ Fails without active internet connection</td>
+              <td class="p-3.5 text-emerald-700 font-bold">✅ Works in airplane mode / air-gapped</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Holdout Error (Daily Spend WMAPE)</td>
+              <td class="p-3.5 text-rose-600">165.45% (Prompted zero-shot token regression)</td>
+              <td class="p-3.5 text-emerald-700 font-bold">56.34% (3x better than GPT-4o-mini, 12x vs naive)</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Monthly Spend WMAPE</td>
+              <td class="p-3.5 text-slate-600">4.85%</td>
+              <td class="p-3.5 text-emerald-700 font-bold">2.03%</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Execution Latency</td>
+              <td class="p-3.5 text-slate-600">~3.42s (Network API round-trip)</td>
+              <td class="p-3.5 text-purple-700 font-bold">~373s (Consumer AMD CPU "Slow &amp; Steady")</td>
+            </tr>
+            <tr>
+              <td class="p-3.5 font-bold text-slate-800">Auditability &amp; Portability</td>
+              <td class="p-3.5 text-rose-600">❌ Closed black box; vendor can deprecate</td>
+              <td class="p-3.5 text-emerald-700 font-bold">✅ Open weights, fully auditable &amp; swappable</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ================= SECTION 5: SENTRY DISTRIBUTED TRACE ================= -->
+  <section id="sentry-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-10 border-t border-slate-200/80">
+    <div class="card-clean rounded-2xl p-7 sm:p-9 shadow-sm">
+      
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Sentry AI Agent Distributed Trace</h2>
+          <p class="text-xs text-slate-500 mt-1">End-to-end distributed telemetry monitoring offline agent tool calls with zero cloud fees</p>
+        </div>
+        <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          ai.cost: $0.00
+        </span>
+      </div>
+
+      <!-- Trace Waterfall Box -->
+      <div class="bg-slate-900 text-slate-200 rounded-xl p-5 font-mono text-xs space-y-3 shadow-inner">
+        <div class="flex items-center justify-between text-blue-400 font-bold border-b border-slate-800 pb-2.5">
+          <span>▶ [transaction] napper.overnight_run</span>
+          <span class="text-slate-400 text-[11px] font-normal">op: ai.agent</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300 pl-4 border-l-2 border-slate-700 py-1">
+          <span>├── [span] ingest_inbox_csvs</span>
+          <span class="text-slate-500 text-[10px]">ai.tool.ingest &bull; 0.02s</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300 pl-4 border-l-2 border-slate-700 py-1">
+          <span>├── [span] detect_recurring &amp; duplicates</span>
+          <span class="text-slate-500 text-[10px]">ai.tool.detectors &bull; 0.05s</span>
+        </div>
+        <div class="flex items-center justify-between text-emerald-400 pl-4 border-l-2 border-emerald-500/60 py-1 font-semibold">
+          <span>├── [span] tabpfn_3_5_forecast</span>
+          <span class="text-emerald-400 text-[10px]">ai.model.tabpfn &bull; TabPFNRegressor</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300 pl-4 border-l-2 border-slate-700 py-1">
+          <span>├── [span] walk_forward_seasonal_screen</span>
+          <span class="text-slate-500 text-[10px]">ai.tool.anomaly_screen &bull; 0.01s</span>
+        </div>
+        <div class="flex items-center justify-between text-purple-400 pl-4 border-l-2 border-purple-500/60 py-1 font-semibold">
+          <span>└── [span] synthesize_morning_brief</span>
+          <span class="text-purple-400 text-[10px]">ai.chat_completions &bull; template/gemma</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  
+  <!-- ================= SECTION 6: INGESTED DATASETS SHOWCASE ================= -->
+  <section id="inbox-section" class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 py-12 border-t border-slate-200/80">
+    <div class="card-clean rounded-2xl p-7 sm:p-9">
+      <div class="flex flex-wrap items-center justify-between mb-6 pb-4 border-b border-slate-100 gap-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 tracking-tight font-mono uppercase">Verified Local Datasets (1,110 Data Points)</h2>
+          <p class="text-xs text-slate-500 mt-1">Multi-domain real-world and synthetic time-series benchmarked offline</p>
+        </div>
+        <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          4 Seeded Datasets Active
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono font-bold text-slate-900 text-sm">bank.csv</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold">FINANCE</span>
+            </div>
+            <div class="text-xs text-slate-600 font-mono">253 rows &bull; 8.9 KB</div>
+            <div class="text-[11px] text-slate-500 mt-2 leading-relaxed">13 months personal banking, recurring subscriptions &amp; charges.</div>
+          </div>
+          <div class="mt-4 text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+            TabPFN Error: 2.03%
+          </div>
+        </div>
+
+        <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono font-bold text-slate-900 text-sm">electricity.csv</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-bold">UTILITY</span>
+            </div>
+            <div class="text-xs text-slate-600 font-mono">386 rows &bull; 6.4 KB</div>
+            <div class="text-[11px] text-slate-500 mt-2 leading-relaxed">Daily smart meter kWh readings with 3-day AC heatwave spike.</div>
+          </div>
+          <div class="mt-4 text-[10px] font-mono text-amber-700 font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">
+            3-Day Spike Caught
+          </div>
+        </div>
+
+        <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono font-bold text-slate-900 text-sm">steps.csv</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">FITNESS</span>
+            </div>
+            <div class="text-xs text-slate-600 font-mono">386 rows &bull; 6.4 KB</div>
+            <div class="text-[11px] text-slate-500 mt-2 leading-relaxed">Daily step count with weekend/weekday periodicity (~8,000 steps).</div>
+          </div>
+          <div class="mt-4 text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+            0 Anomalies (Clean)
+          </div>
+        </div>
+
+        <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono font-bold text-slate-900 text-sm">water.csv</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 border border-cyan-200 font-bold">UTILITY</span>
+            </div>
+            <div class="text-xs text-slate-600 font-mono">85 rows &bull; 1.4 KB</div>
+            <div class="text-[11px] text-slate-500 mt-2 leading-relaxed">Daily water consumption with catastrophic +706% pipe leak.</div>
+          </div>
+          <div class="mt-4 text-[10px] font-mono text-cyan-700 font-bold bg-cyan-50 px-2 py-1 rounded border border-cyan-200">
+            Oct 18-19 Burst Caught
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-slate-200 py-8 text-center text-xs text-slate-500 bg-white mt-auto">
+    <div class="max-w-[1400px] w-full mx-auto px-6 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-mono font-bold text-slate-800">&lt;NAPPER&gt;</span>
+        <span>&bull; Hacktoberfest 2026 Challenge Entry &bull; <strong>Ansuj Kumar Meher</strong></span>
+      </div>
+      <p class="text-slate-500">Powered by <strong>TabPFN-3.5</strong> foundation model &bull; 100% Offline &bull; $0.00 Runtime</p>
+    </div>
   </footer>
 
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
-    // Canvas time series visualization
-    const canvas = document.getElementById('timeSeriesChart');
-    const ctx = canvas.getContext('2d');
-    let currentSeries = 'electricity';
 
-    function resizeCanvas() {
-      canvas.width = canvas.parentElement.clientWidth - 48;
-      canvas.height = 280;
-      renderChart();
-    }
-    window.addEventListener('resize', resizeCanvas);
+    const PRECOMPUTED_DATA = {"bank:spend-daily": {"series_name": "bank:spend-daily", "available_series": ["bank:spend", "bank:spend-daily", "electricity:kwh", "steps:steps", "water:liters"], "model": "tabpfn-3.5", "unit": "amount", "wmape_pct": 56.34, "baseline_wmape_pct": 676.78, "fit_seconds": 458.61, "next_sum": 1483.85, "next_avg": 49.46, "history": [{"date": "2026-09-02", "value": 4.24}, {"date": "2026-09-03", "value": 1450.0}, {"date": "2026-09-04", "value": 4.11}, {"date": "2026-09-05", "value": 105.17}, {"date": "2026-09-06", "value": 0.0}, {"date": "2026-09-07", "value": 4.4}, {"date": "2026-09-08", "value": 12.99}, {"date": "2026-09-09", "value": 3.33}, {"date": "2026-09-10", "value": 4.67}, {"date": "2026-09-11", "value": 0.0}, {"date": "2026-09-12", "value": 9.99}, {"date": "2026-09-13", "value": 0.0}, {"date": "2026-09-14", "value": 0.0}, {"date": "2026-09-15", "value": 4.64}, {"date": "2026-09-16", "value": 0.0}, {"date": "2026-09-17", "value": 0.0}, {"date": "2026-09-18", "value": 5.21}, {"date": "2026-09-19", "value": 90.74}, {"date": "2026-09-20", "value": 155.72}, {"date": "2026-09-21", "value": 0.0}, {"date": "2026-09-22", "value": 0.0}, {"date": "2026-09-23", "value": 0.0}, {"date": "2026-09-24", "value": 0.0}, {"date": "2026-09-25", "value": 0.0}, {"date": "2026-09-26", "value": 75.96}, {"date": "2026-09-27", "value": 0.0}, {"date": "2026-09-28", "value": 4.43}, {"date": "2026-09-29", "value": 3.62}, {"date": "2026-09-30", "value": 0.0}, {"date": "2026-10-01", "value": 4.78}, {"date": "2026-10-02", "value": 0.0}, {"date": "2026-10-03", "value": 1518.77}, {"date": "2026-10-04", "value": 0.0}, {"date": "2026-10-05", "value": 35.24}, {"date": "2026-10-06", "value": 0.0}, {"date": "2026-10-07", "value": 4.75}, {"date": "2026-10-08", "value": 12.99}, {"date": "2026-10-09", "value": 0.0}, {"date": "2026-10-10", "value": 76.79}, {"date": "2026-10-11", "value": 0.0}, {"date": "2026-10-12", "value": 14.07}, {"date": "2026-10-13", "value": 0.0}, {"date": "2026-10-14", "value": 4.27}, {"date": "2026-10-15", "value": 0.0}, {"date": "2026-10-16", "value": 4.08}, {"date": "2026-10-17", "value": 9.27}, {"date": "2026-10-18", "value": 0.0}, {"date": "2026-10-19", "value": 4.98}, {"date": "2026-10-20", "value": 79.19}, {"date": "2026-10-21", "value": 4.72}], "anomalies": [], "forecast": [{"date": "2026-10-22", "value": 1.95}, {"date": "2026-10-23", "value": 1.81}, {"date": "2026-10-24", "value": 1.88}, {"date": "2026-10-25", "value": 64.21}, {"date": "2026-10-26", "value": 0.79}, {"date": "2026-10-27", "value": 1.69}, {"date": "2026-10-28", "value": 1.84}, {"date": "2026-10-29", "value": 1.75}, {"date": "2026-10-30", "value": 1.74}, {"date": "2026-10-31", "value": 1.76}, {"date": "2026-11-01", "value": 64.19}, {"date": "2026-11-02", "value": 3.88}, {"date": "2026-11-03", "value": 2.03}, {"date": "2026-11-04", "value": 926.86}, {"date": "2026-11-05", "value": 58.64}, {"date": "2026-11-06", "value": 50.01}, {"date": "2026-11-07", "value": 7.54}, {"date": "2026-11-08", "value": 67.05}, {"date": "2026-11-09", "value": 50.06}, {"date": "2026-11-10", "value": 6.81}, {"date": "2026-11-11", "value": 11.81}, {"date": "2026-11-12", "value": 10.68}, {"date": "2026-11-13", "value": 18.12}, {"date": "2026-11-14", "value": 11.07}, {"date": "2026-11-15", "value": 65.12}, {"date": "2026-11-16", "value": 15.72}, {"date": "2026-11-17", "value": 12.74}, {"date": "2026-11-18", "value": 9.12}, {"date": "2026-11-19", "value": 5.67}, {"date": "2026-11-20", "value": 7.34}]}, "electricity:kwh": {"series_name": "electricity:kwh", "available_series": ["bank:spend", "bank:spend-daily", "electricity:kwh", "steps:steps", "water:liters"], "model": "tabpfn-3.5", "unit": "kwh", "wmape_pct": 21.96, "baseline_wmape_pct": 19.62, "fit_seconds": 418.59, "next_sum": 492.08, "next_avg": 16.4, "history": [{"date": "2026-09-02", "value": 15.2}, {"date": "2026-09-03", "value": 17.7}, {"date": "2026-09-04", "value": 16.3}, {"date": "2026-09-05", "value": 12.4}, {"date": "2026-09-06", "value": 10.1}, {"date": "2026-09-07", "value": 18.6}, {"date": "2026-09-08", "value": 16.5}, {"date": "2026-09-09", "value": 13.7}, {"date": "2026-09-10", "value": 14.3}, {"date": "2026-09-11", "value": 13.6}, {"date": "2026-09-12", "value": 11.7}, {"date": "2026-09-13", "value": 15.7}, {"date": "2026-09-14", "value": 62.4}, {"date": "2026-09-15", "value": 59.7}, {"date": "2026-09-16", "value": 57.7}, {"date": "2026-09-17", "value": 18.7}, {"date": "2026-09-18", "value": 10.6}, {"date": "2026-09-19", "value": 10.3}, {"date": "2026-09-20", "value": 13.1}, {"date": "2026-09-21", "value": 13.6}, {"date": "2026-09-22", "value": 14.5}, {"date": "2026-09-23", "value": 16.3}, {"date": "2026-09-24", "value": 15.4}, {"date": "2026-09-25", "value": 16.2}, {"date": "2026-09-26", "value": 9.3}, {"date": "2026-09-27", "value": 12.0}, {"date": "2026-09-28", "value": 16.8}, {"date": "2026-09-29", "value": 14.4}, {"date": "2026-09-30", "value": 14.4}, {"date": "2026-10-01", "value": 15.8}, {"date": "2026-10-02", "value": 16.3}, {"date": "2026-10-03", "value": 11.0}, {"date": "2026-10-04", "value": 12.5}, {"date": "2026-10-05", "value": 17.5}, {"date": "2026-10-06", "value": 13.4}, {"date": "2026-10-07", "value": 17.9}, {"date": "2026-10-08", "value": 15.0}, {"date": "2026-10-09", "value": 18.4}, {"date": "2026-10-10", "value": 9.5}, {"date": "2026-10-11", "value": 14.9}, {"date": "2026-10-12", "value": 13.5}, {"date": "2026-10-13", "value": 16.4}, {"date": "2026-10-14", "value": 15.3}, {"date": "2026-10-15", "value": 11.4}, {"date": "2026-10-16", "value": 17.3}, {"date": "2026-10-17", "value": 10.8}, {"date": "2026-10-18", "value": 10.3}, {"date": "2026-10-19", "value": 18.9}, {"date": "2026-10-20", "value": 14.7}, {"date": "2026-10-21", "value": 13.5}], "anomalies": [{"date": "2026-09-14", "value": 62.4, "expected": 19.2, "note": "2026-09-14: 62.40 vs expected 19.20 (+225%)"}, {"date": "2026-09-15", "value": 59.7, "expected": 19.0, "note": "2026-09-15: 59.70 vs expected 19.00 (+214%)"}, {"date": "2026-09-16", "value": 57.7, "expected": 15.95, "note": "2026-09-16: 57.70 vs expected 15.95 (+262%)"}], "forecast": [{"date": "2026-10-22", "value": 16.85}, {"date": "2026-10-23", "value": 15.11}, {"date": "2026-10-24", "value": 16.92}, {"date": "2026-10-25", "value": 12.58}, {"date": "2026-10-26", "value": 13.24}, {"date": "2026-10-27", "value": 20.02}, {"date": "2026-10-28", "value": 16.83}, {"date": "2026-10-29", "value": 18.8}, {"date": "2026-10-30", "value": 17.44}, {"date": "2026-10-31", "value": 16.74}, {"date": "2026-11-01", "value": 14.3}, {"date": "2026-11-02", "value": 13.51}, {"date": "2026-11-03", "value": 17.77}, {"date": "2026-11-04", "value": 18.14}, {"date": "2026-11-05", "value": 17.75}, {"date": "2026-11-06", "value": 17.57}, {"date": "2026-11-07", "value": 16.97}, {"date": "2026-11-08", "value": 14.05}, {"date": "2026-11-09", "value": 13.98}, {"date": "2026-11-10", "value": 17.63}, {"date": "2026-11-11", "value": 17.53}, {"date": "2026-11-12", "value": 17.5}, {"date": "2026-11-13", "value": 17.17}, {"date": "2026-11-14", "value": 16.73}, {"date": "2026-11-15", "value": 13.81}, {"date": "2026-11-16", "value": 13.8}, {"date": "2026-11-17", "value": 17.76}, {"date": "2026-11-18", "value": 17.01}, {"date": "2026-11-19", "value": 17.57}, {"date": "2026-11-20", "value": 16.99}]}, "steps:steps": {"series_name": "steps:steps", "available_series": ["bank:spend", "bank:spend-daily", "electricity:kwh", "steps:steps", "water:liters"], "model": "tabpfn-3.5", "unit": "steps", "wmape_pct": 9.53, "baseline_wmape_pct": 12.83, "fit_seconds": 349.27, "next_sum": 234115.93, "next_avg": 7803.86, "history": [{"date": "2026-09-02", "value": 9407.0}, {"date": "2026-09-03", "value": 9068.0}, {"date": "2026-09-04", "value": 8231.0}, {"date": "2026-09-05", "value": 5505.0}, {"date": "2026-09-06", "value": 5843.0}, {"date": "2026-09-07", "value": 9169.0}, {"date": "2026-09-08", "value": 7887.0}, {"date": "2026-09-09", "value": 8518.0}, {"date": "2026-09-10", "value": 8050.0}, {"date": "2026-09-11", "value": 8449.0}, {"date": "2026-09-12", "value": 6385.0}, {"date": "2026-09-13", "value": 7341.0}, {"date": "2026-09-14", "value": 8301.0}, {"date": "2026-09-15", "value": 8319.0}, {"date": "2026-09-16", "value": 8103.0}, {"date": "2026-09-17", "value": 8030.0}, {"date": "2026-09-18", "value": 10217.0}, {"date": "2026-09-19", "value": 7722.0}, {"date": "2026-09-20", "value": 5288.0}, {"date": "2026-09-21", "value": 7457.0}, {"date": "2026-09-22", "value": 9229.0}, {"date": "2026-09-23", "value": 7487.0}, {"date": "2026-09-24", "value": 7936.0}, {"date": "2026-09-25", "value": 9628.0}, {"date": "2026-09-26", "value": 7323.0}, {"date": "2026-09-27", "value": 5683.0}, {"date": "2026-09-28", "value": 8069.0}, {"date": "2026-09-29", "value": 7726.0}, {"date": "2026-09-30", "value": 8682.0}, {"date": "2026-10-01", "value": 6925.0}, {"date": "2026-10-02", "value": 8544.0}, {"date": "2026-10-03", "value": 5431.0}, {"date": "2026-10-04", "value": 7146.0}, {"date": "2026-10-05", "value": 8726.0}, {"date": "2026-10-06", "value": 8020.0}, {"date": "2026-10-07", "value": 9124.0}, {"date": "2026-10-08", "value": 9029.0}, {"date": "2026-10-09", "value": 8383.0}, {"date": "2026-10-10", "value": 7423.0}, {"date": "2026-10-11", "value": 5935.0}, {"date": "2026-10-12", "value": 8336.0}, {"date": "2026-10-13", "value": 9471.0}, {"date": "2026-10-14", "value": 6857.0}, {"date": "2026-10-15", "value": 7476.0}, {"date": "2026-10-16", "value": 9784.0}, {"date": "2026-10-17", "value": 7336.0}, {"date": "2026-10-18", "value": 5988.0}, {"date": "2026-10-19", "value": 8215.0}, {"date": "2026-10-20", "value": 9687.0}, {"date": "2026-10-21", "value": 8051.0}], "anomalies": [], "forecast": [{"date": "2026-10-22", "value": 8486.77}, {"date": "2026-10-23", "value": 8289.88}, {"date": "2026-10-24", "value": 8444.9}, {"date": "2026-10-25", "value": 6561.43}, {"date": "2026-10-26", "value": 6427.12}, {"date": "2026-10-27", "value": 8322.7}, {"date": "2026-10-28", "value": 8228.88}, {"date": "2026-10-29", "value": 8650.08}, {"date": "2026-10-30", "value": 8539.8}, {"date": "2026-10-31", "value": 8314.89}, {"date": "2026-11-01", "value": 6691.12}, {"date": "2026-11-02", "value": 6310.98}, {"date": "2026-11-03", "value": 8278.09}, {"date": "2026-11-04", "value": 7978.53}, {"date": "2026-11-05", "value": 8282.24}, {"date": "2026-11-06", "value": 8304.4}, {"date": "2026-11-07", "value": 8146.08}, {"date": "2026-11-08", "value": 6518.5}, {"date": "2026-11-09", "value": 6402.67}, {"date": "2026-11-10", "value": 8048.06}, {"date": "2026-11-11", "value": 8148.47}, {"date": "2026-11-12", "value": 8315.4}, {"date": "2026-11-13", "value": 8234.38}, {"date": "2026-11-14", "value": 8277.23}, {"date": "2026-11-15", "value": 6738.45}, {"date": "2026-11-16", "value": 6321.85}, {"date": "2026-11-17", "value": 8131.46}, {"date": "2026-11-18", "value": 8178.91}, {"date": "2026-11-19", "value": 8319.26}, {"date": "2026-11-20", "value": 8223.43}]}, "water:liters": {"series_name": "water:liters", "available_series": ["bank:spend", "bank:spend-daily", "electricity:kwh", "steps:steps", "water:liters"], "model": "tabpfn-3.5", "unit": "liters", "wmape_pct": 56.34, "baseline_wmape_pct": 61.46, "fit_seconds": 60.11, "next_sum": 1398.25, "next_avg": 46.61, "history": [{"date": "2026-09-05", "value": 40.1}, {"date": "2026-09-06", "value": 53.7}, {"date": "2026-09-07", "value": 46.9}, {"date": "2026-09-08", "value": 44.0}, {"date": "2026-09-09", "value": 41.4}, {"date": "2026-09-10", "value": 38.2}, {"date": "2026-09-11", "value": 37.9}, {"date": "2026-09-12", "value": 44.5}, {"date": "2026-09-13", "value": 51.6}, {"date": "2026-09-14", "value": 48.8}, {"date": "2026-09-15", "value": 46.5}, {"date": "2026-09-16", "value": 38.8}, {"date": "2026-09-17", "value": 39.5}, {"date": "2026-09-18", "value": 38.6}, {"date": "2026-09-19", "value": 37.9}, {"date": "2026-09-20", "value": 54.1}, {"date": "2026-09-21", "value": 53.2}, {"date": "2026-09-22", "value": 46.6}, {"date": "2026-09-23", "value": 43.1}, {"date": "2026-09-24", "value": 39.4}, {"date": "2026-09-25", "value": 40.9}, {"date": "2026-09-26", "value": 41.6}, {"date": "2026-09-27", "value": 51.6}, {"date": "2026-09-28", "value": 56.1}, {"date": "2026-09-29", "value": 53.2}, {"date": "2026-09-30", "value": 38.7}, {"date": "2026-10-01", "value": 34.5}, {"date": "2026-10-02", "value": 32.8}, {"date": "2026-10-03", "value": 40.2}, {"date": "2026-10-04", "value": 56.1}, {"date": "2026-10-05", "value": 60.2}, {"date": "2026-10-06", "value": 49.1}, {"date": "2026-10-07", "value": 44.7}, {"date": "2026-10-08", "value": 36.7}, {"date": "2026-10-09", "value": 34.6}, {"date": "2026-10-10", "value": 46.4}, {"date": "2026-10-11", "value": 59.0}, {"date": "2026-10-12", "value": 54.6}, {"date": "2026-10-13", "value": 55.6}, {"date": "2026-10-14", "value": 30.2}, {"date": "2026-10-15", "value": 38.5}, {"date": "2026-10-16", "value": 37.5}, {"date": "2026-10-17", "value": 43.8}, {"date": "2026-10-18", "value": 425.0}, {"date": "2026-10-19", "value": 425.0}, {"date": "2026-10-20", "value": 48.5}, {"date": "2026-10-21", "value": 42.1}, {"date": "2026-10-22", "value": 41.2}, {"date": "2026-10-23", "value": 35.1}, {"date": "2026-10-24", "value": 41.8}], "anomalies": [{"date": "2026-10-18", "value": 425.0, "expected": 53.4, "note": "2026-10-18: 425.00 vs expected 53.40 (+696%)"}, {"date": "2026-10-19", "value": 425.0, "expected": 52.75, "note": "2026-10-19: 425.00 vs expected 52.75 (+706%)"}], "forecast": [{"date": "2026-10-25", "value": 43.94}, {"date": "2026-10-26", "value": 61.62}, {"date": "2026-10-27", "value": 61.63}, {"date": "2026-10-28", "value": 53.1}, {"date": "2026-10-29", "value": 40.19}, {"date": "2026-10-30", "value": 35.84}, {"date": "2026-10-31", "value": 36.6}, {"date": "2026-11-01", "value": 43.39}, {"date": "2026-11-02", "value": 57.44}, {"date": "2026-11-03", "value": 63.12}, {"date": "2026-11-04", "value": 52.2}, {"date": "2026-11-05", "value": 43.22}, {"date": "2026-11-06", "value": 36.44}, {"date": "2026-11-07", "value": 36.12}, {"date": "2026-11-08", "value": 42.61}, {"date": "2026-11-09", "value": 50.33}, {"date": "2026-11-10", "value": 57.62}, {"date": "2026-11-11", "value": 53.83}, {"date": "2026-11-12", "value": 46.43}, {"date": "2026-11-13", "value": 35.98}, {"date": "2026-11-14", "value": 36.08}, {"date": "2026-11-15", "value": 40.63}, {"date": "2026-11-16", "value": 49.89}, {"date": "2026-11-17", "value": 55.78}, {"date": "2026-11-18", "value": 53.83}, {"date": "2026-11-19", "value": 45.62}, {"date": "2026-11-20", "value": 39.83}, {"date": "2026-11-21", "value": 36.72}, {"date": "2026-11-22", "value": 40.52}, {"date": "2026-11-23", "value": 47.7}]}};
+    let chartInstance = null;
 
-    function switchSeries(type) {
-      currentSeries = type;
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      const metric = document.getElementById('chartMetric');
-      if (type === 'electricity') metric.textContent = 'Holdout WMAPE: 19.62% (Spike Flagged)';
-      if (type === 'bank') metric.textContent = 'Holdout WMAPE: 1.77% (Stationary Monthly)';
-      if (type === 'steps') metric.textContent = 'Holdout WMAPE: 12.83% (Seasonal Baseline)';
-      renderChart();
-    }
-
-    function renderChart() {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-
-      // Grid lines
-      ctx.strokeStyle = '#1f2937';
-      ctx.lineWidth = 1;
-      for (let y = 30; y < h - 30; y += 45) {
-        ctx.beginPath();
-        ctx.moveTo(40, y);
-        ctx.lineTo(w - 20, y);
-        ctx.stroke();
-      }
-
-      const points = 45;
-      const step = (w - 70) / points;
-      let data = [];
-      let spikeIdx = -1;
-
-      for (let i = 0; i < points; i++) {
-        let base = 25 + Math.sin(i * 0.4) * 8 + Math.random() * 4;
-        if (currentSeries === 'electricity' && i >= 35 && i <= 37) {
-          base = 58;
-          spikeIdx = i;
-        } else if (currentSeries === 'bank') {
-          base = (i % 7 === 0 ? 90 : 15) + Math.random() * 8;
-        } else if (currentSeries === 'steps') {
-          base = 7500 + Math.sin(i * 0.3) * 2000 + Math.random() * 500;
+    // Quick Selector & Smooth Scroll
+    function selectSeriesAndScroll(seriesName) {
+      const sel = document.getElementById('seriesSelector');
+      if (sel) {
+        for (const opt of sel.options) {
+          if (opt.value === seriesName || opt.value.startsWith(seriesName.split(':')[0])) {
+            sel.value = opt.value;
+            loadChart(opt.value);
+            break;
+          }
         }
-        data.push(base);
       }
-
-      const maxVal = Math.max(...data) * 1.15;
-      const minVal = Math.min(...data) * 0.85;
-
-      // Draw Main Line
-      ctx.strokeStyle = '#60a5fa';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      data.forEach((val, idx) => {
-        const x = 50 + idx * step;
-        const y = h - 40 - ((val - minVal) / (maxVal - minVal)) * (h - 80);
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      // Draw points & anomalies
-      data.forEach((val, idx) => {
-        const x = 50 + idx * step;
-        const y = h - 40 - ((val - minVal) / (maxVal - minVal)) * (h - 80);
-        ctx.beginPath();
-        if (currentSeries === 'electricity' && idx >= 35 && idx <= 37) {
-          ctx.fillStyle = '#f43f5e';
-          ctx.arc(x, y, 6, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.fillStyle = '#3b82f6';
-          ctx.arc(x, y, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-
-      // Draw Forecast Horizon
-      const lastX = 50 + (points - 1) * step;
-      const lastY = h - 40 - ((data[data.length - 1] - minVal) / (maxVal - minVal)) * (h - 80);
-      ctx.strokeStyle = '#10b981';
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      for (let k = 1; k <= 10; k++) {
-        const fx = lastX + k * (step * 0.8);
-        const fy = lastY + Math.sin(k * 0.5) * 12;
-        ctx.lineTo(fx, fy);
-      }
-      ctx.stroke();
-      ctx.setLineDash([]);
+      const studio = document.getElementById('studio-section');
+      if (studio) studio.scrollIntoView({ behavior: 'smooth' });
     }
 
-    setTimeout(resizeCanvas, 50);
+    // Toast Notifications
+    function showToast(message, type = 'success') {
+      const existing = document.getElementById('napperToast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'napperToast';
+      toast.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border text-xs font-semibold shadow-2xl flex items-center gap-2 transition-all transform duration-300 opacity-0 translate-y-4 ${
+        type === 'success' 
+          ? 'bg-slate-900 border-slate-700 text-emerald-400' 
+          : 'bg-rose-950 border-rose-800 text-rose-300'
+      }`;
+      toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <span>${message}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-4'), 20);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Load Chart Data from Embedded JSON
+    function loadChart(seriesName) {
+      const targetSeries = seriesName || document.getElementById('seriesSelector')?.value || 'bank:spend-daily';
+      const data = PRECOMPUTED_DATA[targetSeries] || PRECOMPUTED_DATA['bank:spend-daily'];
+      if (!data) return;
+
+      // Update metric display cards
+      const elModel = document.getElementById('chartEngineModel');
+      const elWmape = document.getElementById('chartMetricWmape');
+      const elSum = document.getElementById('chartMetricSum');
+      const elAnomalies = document.getElementById('chartMetricAnomalies');
+
+      const modelVal = data.model || 'tabpfn-3.5';
+      const wmapeVal = data.wmape_pct;
+      const sumVal = data.next_sum;
+      const anomCount = (data.anomalies?.length || 0);
+
+      if (elModel) elModel.textContent = modelVal;
+      if (elWmape) elWmape.textContent = (wmapeVal != null) ? wmapeVal.toFixed(2) + '%' : 'N/A';
+      if (elSum) elSum.textContent = (sumVal != null) ? '~' + sumVal.toFixed(2) : 'N/A';
+      if (elAnomalies) elAnomalies.textContent = anomCount;
+
+      // Format dates & values for Chart.js
+      const histDates = (data.history || []).map(d => d.date);
+      const histValues = (data.history || []).map(d => d.value);
+
+      const predPoints = data.forecast || data.prediction || [];
+      const predDates = predPoints.map(d => d.date);
+      const predValues = predPoints.map(d => d.value);
+
+      // Combined timeline
+      const allDates = Array.from(new Set([...histDates, ...predDates])).sort();
+      const histMap = Object.fromEntries((data.history || []).map(d => [d.date, d.value]));
+      const predMap = Object.fromEntries(predPoints.map(d => [d.date, d.value]));
+      const anomMap = Object.fromEntries((data.anomalies || []).map(a => [a.date, a.value || a.actual]));
+
+      const historyPlot = allDates.map(dt => (histMap[dt] !== undefined ? histMap[dt] : null));
+      const predPlot = allDates.map(dt => (predMap[dt] !== undefined ? predMap[dt] : null));
+      const anomPlot = allDates.map(dt => (anomMap[dt] !== undefined ? anomMap[dt] : null));
+
+      // Connect prediction line smoothly to last historical point
+      if (histDates.length > 0 && predDates.length > 0) {
+        const lastHistDate = histDates[histDates.length - 1];
+        const lastHistVal = histValues[histValues.length - 1];
+        const idx = allDates.indexOf(lastHistDate);
+        if (idx !== -1) predPlot[idx] = lastHistVal;
+      }
+
+      // Render with Chart.js
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: allDates,
+          datasets: [
+            {
+              label: 'Historical Series',
+              data: historyPlot,
+              borderColor: '#0f172a',
+              backgroundColor: 'rgba(15, 23, 42, 0.04)',
+              borderWidth: 2,
+              pointRadius: 1.5,
+              pointHoverRadius: 5,
+              pointBackgroundColor: '#0f172a',
+              tension: 0.1,
+              fill: true
+            },
+            {
+              label: '30-Day Model Forecast',
+              data: predPlot,
+              borderColor: '#f97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.1)',
+              borderWidth: 2.5,
+              borderDash: [5, 4],
+              pointRadius: 2,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#f97316',
+              tension: 0.2,
+              fill: true
+            },
+            {
+              label: 'Detected Anomaly',
+              data: anomPlot,
+              borderColor: '#ef4444',
+              backgroundColor: '#ef4444',
+              pointRadius: 7,
+              pointHoverRadius: 10,
+              showLine: false,
+              pointStyle: 'circle'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: 'JetBrains Mono', size: 12, weight: 'bold' },
+              bodyFont: { family: 'JetBrains Mono', size: 12 },
+              padding: 12,
+              cornerRadius: 8,
+              callbacks: {
+                afterBody: function(items) {
+                  const dt = items[0]?.label;
+                  const anom = (data.anomalies || []).find(a => a.date === dt);
+                  if (anom) {
+                    return `\n⚠️ ANOMALY DETECTED!\n${anom.note || 'Expected vs Actual Spike'}`;
+                  }
+                  return '';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' }, maxTicksLimit: 14 }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
+            }
+          }
+        }
+      });
+    }
+
+    // Speech Synthesis
+    function speakBrief() {
+      const l1 = document.getElementById('briefLine1')?.textContent || '';
+      const l2 = document.getElementById('briefLine2')?.textContent || '';
+      const text = `${l1}. ${l2}`;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+        showToast('Speaking morning brief...');
+      } else {
+        showToast('Speech Synthesis not supported in this browser', 'error');
+      }
+    }
+
+    // Copy to Clipboard
+    function copyBrief() {
+      const l1 = document.getElementById('briefLine1')?.textContent || '';
+      const l2 = document.getElementById('briefLine2')?.textContent || '';
+      navigator.clipboard.writeText(`${l1}\n${l2}`).then(() => {
+        showToast('Brief copied to clipboard!');
+      });
+    }
+
+    // Initial load
+    loadChart('bank:spend-daily');
+
   </script>
 </body>
 </html>
