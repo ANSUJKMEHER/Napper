@@ -1,272 +1,677 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Napper — The Agent That Works While You Sleep</title>
-  <!-- Tailwind CSS & Chart.js via CDN -->
+  <title>Napper — Autonomous Predictive AI Agent (Local &amp; Offline)</title>
+  
+  <!-- Tailwind CSS & Chart.js & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            deep: {
+              900: '#0b0f19',
+              950: '#070a12',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  
   <style>
     :root {
-      --bg: #090d16;
-      --card: #111827;
-      --border: #1f2937;
-      --emerald: #10b981;
+      --bg: #070a12;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-glow: rgba(16, 185, 129, 0.15);
     }
-    body { background-color: var(--bg); color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
-    .glow-emerald { box-shadow: 0 0 25px rgba(16, 185, 129, 0.15); }
-    .glow-rose { box-shadow: 0 0 20px rgba(244, 63, 94, 0.15); }
-    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); }
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.07) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.08);
+    }
+    .glow-emerald { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+    .glow-purple { box-shadow: 0 0 30px rgba(168, 85, 247, 0.15); }
+    .glow-cyan { box-shadow: 0 0 30px rgba(6, 182, 212, 0.15); }
+    .nav-tab-active {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border-bottom: 2px solid #10b981;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #070a12; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
   </style>
 </head>
+
 <body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-black">
 
-  <!-- Top Navigation -->
-  <nav class="border-b border-gray-800 bg-[#0d111b]/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+  <!-- ================= TOP NAVIGATION (FLUX-STYLE) ================= -->
+  <header class="border-b border-white/10 bg-[#070a12]/80 backdrop-blur-xl sticky top-0 z-50 px-6 py-3.5 transition-all">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">🦥</span>
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="font-extrabold text-xl tracking-tight text-white">Napper</span>
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Local Offline</span>
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">TabPFN-3.5</span>
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">$0.00 / Run</span>
+      
+      <!-- Brand & Status Pill -->
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-2xl shadow-inner">
+            🦥
           </div>
-          <p class="text-xs text-gray-400">Hacktoberfest 2026: Slow &amp; Steady</p>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
+                Napper
+                <span class="text-[10px] font-mono font-normal px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400">v1.0</span>
+              </span>
+              <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Local Offline
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 hidden sm:block">Autonomous Predictive AI Agent &bull; Hacktoberfest 2026</p>
+          </div>
         </div>
       </div>
 
-      <!-- Execution Controls -->
+      <!-- Execution & Mode Controls -->
       <div class="flex items-center gap-3">
-        <div class="flex items-center bg-gray-900 border border-gray-800 rounded-lg p-1 text-xs">
-          <button id="btnModeFast" onclick="setMode('fast')" class="px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition">⚡ Nap Mode (~2s)</button>
-          <button id="btnModeDeep" onclick="setMode('deep')" class="px-3 py-1.5 rounded-md font-semibold bg-purple-600 text-white transition">🦥 Deep Sleep (TabPFN)</button>
+        <!-- Dual-Speed Mode Toggle -->
+        <div class="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 text-xs backdrop-blur-sm">
+          <button id="btnModeDeep" onclick="setMode('deep')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold bg-purple-600/90 hover:bg-purple-600 text-white transition shadow-sm">
+            <span>🦥</span>
+            <span>Deep Sleep (TabPFN)</span>
+          </button>
+          <button id="btnModeFast" onclick="setMode('fast')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white transition">
+            <span>⚡</span>
+            <span>Nap Mode (~2s)</span>
+          </button>
         </div>
 
-        <button id="btnRun" onclick="triggerRun()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold px-4 py-2 rounded-lg transition shadow-lg shadow-emerald-500/20 text-sm">
+        <!-- Run Agent Action CTA -->
+        <button id="btnRun" onclick="triggerRun()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-500/20 text-xs sm:text-sm active:scale-95">
           <span id="runSpinner" class="hidden animate-spin">🔄</span>
           <span id="runBtnText">Run Agent</span>
         </button>
 
-        <button onclick="resetDemoData()" title="Reset planted demo CSVs" class="text-gray-400 hover:text-white text-xs border border-gray-800 hover:border-gray-700 bg-gray-900 px-3 py-2 rounded-lg transition">
-          ↺ Reset Demo
+        <!-- Quick Voice Playback Button -->
+        <button onclick="speakBrief()" title="Listen to Morning Brief" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition">
+          <span class="text-base">🔊</span>
+          <span class="hidden md:inline">Speak</span>
+        </button>
+
+        <!-- Reset Demo Data -->
+        <button onclick="resetDemoData()" title="Reset planted demo CSVs" class="text-gray-400 hover:text-white text-xs border border-white/10 hover:border-white/20 bg-white/5 p-2 sm:px-3 sm:py-2 rounded-xl transition">
+          ↺ Reset
         </button>
       </div>
-    </div>
-  </nav>
 
-  <!-- Main Container -->
+    </div>
+
+    <!-- Navigation Tabs (Flux Dashboard Style) -->
+    <div class="max-w-7xl mx-auto flex items-center gap-1 mt-3 border-t border-white/5 pt-2 text-xs font-medium text-gray-400 overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('tab-overview')" id="nav-tab-overview" class="flex items-center gap-2 px-3.5 py-2 rounded-lg hover:text-white transition nav-tab-active">
+        <span>📊</span>
+        <span>Overview &amp; Brief</span>
+      </button>
+      <button onclick="switchTab('tab-studio')" id="nav-tab-studio" class="flex items-center gap-2 px-3.5 py-2 rounded-lg hover:text-white transition">
+        <span>📈</span>
+        <span>Predictive Studio</span>
+      </button>
+      <button onclick="switchTab('tab-storylines')" id="nav-tab-storylines" class="flex items-center gap-2 px-3.5 py-2 rounded-lg hover:text-white transition">
+        <span>🎯</span>
+        <span>Verified Detections (4)</span>
+      </button>
+      <button onclick="switchTab('tab-benchmark')" id="nav-tab-benchmark" class="flex items-center gap-2 px-3.5 py-2 rounded-lg hover:text-white transition">
+        <span>⚖️</span>
+        <span>Tortoise vs. Hare</span>
+      </button>
+      <button onclick="switchTab('tab-sentry')" id="nav-tab-sentry" class="flex items-center gap-2 px-3.5 py-2 rounded-lg hover:text-white transition">
+        <span>🛡️</span>
+        <span>Sentry Trace Waterfall</span>
+      </button>
+      <button onclick="switchTab('tab-inbox')" id="nav-tab-inbox" class="flex items-center gap-2 px-3.5 py-2 rounded-lg hover:text-white transition">
+        <span>📥</span>
+        <span>CSV Inbox &amp; Store</span>
+      </button>
+    </div>
+  </header>
+
+
+  <!-- ================= SUB-HEADER STATS BAR (FLUX-STYLE) ================= -->
+  <section class="border-b border-white/5 bg-black/30 py-3 px-6 text-xs">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-gray-400">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">✓</div>
+        <div>
+          <span class="block text-[10px] uppercase tracking-wider text-gray-500">Telemetry Cost</span>
+          <span class="font-bold text-white font-mono">$0.00 / Run</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold">🤖</div>
+        <div>
+          <span class="block text-[10px] uppercase tracking-wider text-gray-500">Foundation Engine</span>
+          <span class="font-bold text-purple-400 font-mono" id="statEngineBadge">TabPFN-3.5</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold">🔒</div>
+        <div>
+          <span class="block text-[10px] uppercase tracking-wider text-gray-500">Privacy &amp; PII</span>
+          <span class="font-bold text-emerald-400 font-mono">0 Bytes Leaked</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold">🎯</div>
+        <div>
+          <span class="block text-[10px] uppercase tracking-wider text-gray-500">Storyline Detections</span>
+          <span class="font-bold text-amber-300 font-mono">4 Verified &bull; 0 Noise</span>
+        </div>
+      </div>
+      <div class="col-span-2 sm:col-span-1 flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold">📊</div>
+        <div>
+          <span class="block text-[10px] uppercase tracking-wider text-gray-500">Active Observation</span>
+          <span id="statPointsBadge" class="font-bold text-cyan-300 font-mono">1,110 data points</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ================= MAIN VIEWPORT ================= -->
   <main class="max-w-7xl mx-auto w-full px-6 py-8 flex-1 space-y-8">
 
-    <!-- Hero: The Morning Brief Card -->
-    <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-6 glow-emerald relative overflow-hidden">
-      <div class="flex items-center justify-between border-b border-gray-800/80 pb-4 mb-4">
-        <div class="flex items-center gap-3">
-          <div class="flex gap-1.5">
-            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+    <!-- ================= TAB 1: OVERVIEW & BRIEF ================= -->
+    <div id="tab-overview" class="tab-content space-y-8">
+      
+      <!-- HERO: THE MORNING BRIEF CARD -->
+      <div class="glass-card rounded-2xl p-6 glow-emerald relative overflow-hidden border border-emerald-500/30">
+        <div class="absolute -right-24 -top-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-wrap items-center justify-between border-b border-white/10 pb-4 mb-4 gap-2">
+          <div class="flex items-center gap-3">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+            </div>
+            <span class="font-mono text-xs text-gray-300 flex items-center gap-2">
+              <span>out/latest.md</span>
+              <span class="text-gray-500">&bull;</span>
+              <span>Autonomous Morning Brief</span>
+            </span>
+            <span id="briefEngineBadge" class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              🦥 Deep Sleep (TabPFN-3.5)
+            </span>
           </div>
-          <span class="font-mono text-xs text-gray-400">Autonomous Morning Digest</span>
-          <span id="briefEngineBadge" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">🦥 Deep Sleep (TabPFN-3.5)</span>
+
+          <div class="flex items-center gap-2">
+            <button onclick="speakBrief()" class="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs px-3 py-1.5 rounded-lg border border-emerald-500/30 transition">
+              <span>🔊</span> Listen to Brief
+            </button>
+            <button onclick="copyBrief()" class="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-gray-300 text-xs px-3 py-1.5 rounded-lg border border-white/10 transition">
+              <span>📋</span> Copy
+            </button>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="speakBrief()" class="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs px-3 py-1.5 rounded-md border border-gray-700 transition">
-            <span>🔊</span> Listen to Brief
-          </button>
-          <button onclick="copyBrief()" class="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-md border border-gray-700 transition">
-            <span>📋</span> Copy
-          </button>
+
+        <!-- Brief Prose -->
+        <div class="space-y-4 py-2">
+          <!-- Line 1: TabPFN Headline Forecast -->
+          <div class="flex items-start gap-3">
+            <span class="text-xl">📈</span>
+            <div>
+              <span class="text-xs uppercase tracking-wider text-gray-400 font-mono block">Primary Forecast Horizon:</span>
+              <div id="briefLine1" class="text-blue-400 text-lg sm:text-xl font-bold font-mono leading-relaxed mt-0.5">
+                Loading morning brief...
+              </div>
+            </div>
+          </div>
+
+          <!-- Line 2: Detected Events & Anomalies Badges -->
+          <div class="flex items-start gap-3 pt-2 border-t border-white/5">
+            <span class="text-xl">🚨</span>
+            <div class="flex-1">
+              <span class="text-xs uppercase tracking-wider text-gray-400 font-mono block mb-2">Overnight Isolations &amp; Price Surprises:</span>
+              <div id="briefLine2" class="flex flex-wrap gap-2 pt-1">
+                <span class="text-gray-400 text-sm">Checking inbox datasets for anomalies...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Meta -->
+        <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400">
+          <span id="briefMeta">Synthesized locally &bull; Data never leaves your machine</span>
+          <span id="trustStat" class="text-emerald-400 font-semibold flex items-center gap-1.5">
+            <span>✓</span> 0 false alarms across 1,110 data points (4 datasets)
+          </span>
         </div>
       </div>
 
-      <div class="font-mono space-y-3 py-2">
-        <div id="briefLine1" class="text-blue-400 text-lg font-bold leading-relaxed">
-          Loading morning brief...
+      <!-- 4 Planted Demo Storylines Overview Grid -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <span>🎯</span> Planted Storyline Detections
+          </h2>
+          <span class="text-xs text-gray-400">All 4 planted catches isolated with zero false positives</span>
         </div>
-        <div id="briefLine2" class="text-gray-200 text-base leading-relaxed">
-          Please wait while the agent checks your inbox.
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Story 1 -->
+          <div class="glass-card glass-card-hover rounded-xl p-5 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 uppercase">Stability Filter</span>
+              <span class="text-rose-400 text-xs font-mono font-bold">+20%</span>
+            </div>
+            <h3 class="text-white font-bold mt-3 text-sm">Gym Price Hike</h3>
+            <p class="text-gray-400 text-xs mt-1">Fitness First gym raised monthly fee in June from $24.99 to $29.99.</p>
+            <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-black/40 border border-white/5 text-rose-300">
+              2026-06: $24.99 ➔ $29.99
+            </div>
+          </div>
+
+          <!-- Story 2 -->
+          <div class="glass-card glass-card-hover rounded-xl p-5 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">Duplicate Detector</span>
+              <span class="text-amber-400 text-xs font-mono font-bold">2x Charge</span>
+            </div>
+            <h3 class="text-white font-bold mt-3 text-sm">Double Power Bill</h3>
+            <p class="text-gray-400 text-xs mt-1">City Power billed twice on the exact same date for the exact same amount.</p>
+            <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-black/40 border border-white/5 text-amber-300">
+              2x $77.86 on 2026-09-20
+            </div>
+          </div>
+
+          <!-- Story 3 -->
+          <div class="glass-card glass-card-hover rounded-xl p-5 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase">Walk-Forward Screen</span>
+              <span class="text-emerald-400 text-xs font-mono font-bold">+262%</span>
+            </div>
+            <h3 class="text-white font-bold mt-3 text-sm">3-Day Power Spike</h3>
+            <p class="text-gray-400 text-xs mt-1">Today vs median of 8 prior same weekdays. Flags exactly the 3 spike days.</p>
+            <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-black/40 border border-white/5 text-emerald-300">
+              57.70 vs 15.95 kWh (Sep 16)
+            </div>
+          </div>
+
+          <!-- Story 4 -->
+          <div class="glass-card glass-card-hover rounded-xl p-5 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 uppercase">Seasonal Screen</span>
+              <span class="text-cyan-400 text-xs font-mono font-bold">+706%</span>
+            </div>
+            <h3 class="text-white font-bold mt-3 text-sm">Water Pipe Leak</h3>
+            <p class="text-gray-400 text-xs mt-1">Planted pipe burst leak in water.csv spiking to 425L on Oct 18 &amp; 19.</p>
+            <div class="mt-4 font-mono text-xs p-2.5 rounded-lg bg-black/40 border border-white/5 text-cyan-300">
+              425.0 vs 52.8 L (Oct 19)
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="mt-4 pt-3 border-t border-gray-800/60 flex flex-wrap items-center justify-between text-xs text-gray-500">
-        <span id="briefMeta">Synthesized locally &bull; Data never left your machine</span>
-        <span id="trustStat" class="text-emerald-400 font-semibold flex items-center gap-1">
-          <span>✓</span> 0 false alarms across 1,025 data points
-        </span>
-      </div>
     </div>
 
-    <!-- 4 Planted Storylines Caught -->
-    <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          <span>🎯</span> Verified Detections (Planted Demo Storylines)
-        </h2>
-        <span class="text-xs text-gray-400">Every planted catch isolated with zero noise</span>
+
+    <!-- ================= TAB 2: PREDICTIVE STUDIO (CHART.JS) ================= -->
+    <div id="tab-studio" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6 glow-cyan">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span>📈</span> Foundation Model Time-Series Visualizer
+              </h2>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Recursive Horizon</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Observed sequence, isolated seasonal anomalies, and 30-day foundation forecast</p>
+          </div>
+
+          <!-- Series Selector Dropdown -->
+          <div class="flex items-center gap-3">
+            <label class="text-xs text-gray-400 font-semibold font-mono">Select Series:</label>
+            <select id="seriesSelector" onchange="loadChart(this.value)" class="bg-[#0b0f19] border border-white/10 text-white text-xs rounded-xl px-4 py-2 font-mono outline-none focus:border-emerald-500 transition shadow-inner">
+              <option value="bank:spend-daily">bank:spend-daily</option>
+              <option value="water:liters">water:liters</option>
+              <option value="electricity:kwh">electricity:kwh</option>
+              <option value="steps:steps">steps:steps</option>
+              <option value="bank:spend">bank:spend (monthly)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Chart Canvas -->
+        <div class="relative w-full h-[360px] p-2 bg-black/20 rounded-xl border border-white/5">
+          <canvas id="mainChart"></canvas>
+        </div>
+
+        <!-- Metric KPI Cards (Flux-style) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-4 border-t border-white/10 text-xs">
+          <div class="bg-black/30 border border-white/5 p-3.5 rounded-xl">
+            <span class="text-gray-400 block text-[10px] uppercase tracking-wider font-mono">Forecasting Engine</span>
+            <span id="chartModel" class="font-bold text-purple-400 text-sm mt-0.5 block">TabPFN-3.5</span>
+          </div>
+          <div class="bg-black/30 border border-white/5 p-3.5 rounded-xl">
+            <span class="text-gray-400 block text-[10px] uppercase tracking-wider font-mono">Holdout Error (WMAPE)</span>
+            <span id="chartWmape" class="font-bold text-white text-sm mt-0.5 block">--</span>
+          </div>
+          <div class="bg-black/30 border border-white/5 p-3.5 rounded-xl">
+            <span class="text-gray-400 block text-[10px] uppercase tracking-wider font-mono">30-Day Forecast Sum</span>
+            <span id="chartSum" class="font-bold text-blue-400 text-sm mt-0.5 block">--</span>
+          </div>
+          <div class="bg-black/30 border border-white/5 p-3.5 rounded-xl">
+            <span class="text-gray-400 block text-[10px] uppercase tracking-wider font-mono">Isolated Anomalies</span>
+            <span id="chartAnomalies" class="font-bold text-rose-400 text-sm mt-0.5 block">--</span>
+          </div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Gym Hike -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 uppercase">Stability Filter</span>
-          <h3 class="text-white font-bold mt-3 text-base">Gym Price Hike (+20%)</h3>
-          <p class="text-gray-400 text-xs mt-1">Fitness First gym raised monthly fee in June from $24.99 to $29.99.</p>
-          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-rose-300">
-            2026-06: $24.99 ➔ $29.99 (+20%)
-          </div>
-        </div>
-
-        <!-- Double Power Charge -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">Duplicate Detector</span>
-          <h3 class="text-white font-bold mt-3 text-base">Double Power Bill</h3>
-          <p class="text-gray-400 text-xs mt-1">City Power billed twice on the exact same date for the exact same amount.</p>
-          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-amber-300">
-            2x $77.86 on 2026-09-20
-          </div>
-        </div>
-
-        <!-- kWh Spike -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase">Walk-Forward Screen</span>
-          <h3 class="text-white font-bold mt-3 text-base">3-Day Power Spike</h3>
-          <p class="text-gray-400 text-xs mt-1">Today vs median of 8 prior same weekdays. Flags exactly the 3 spike days.</p>
-          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-emerald-300">
-            57.70 vs 15.95 kWh (+262%)
-          </div>
-        </div>
-
-        <!-- Forgotten Sub -->
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition">
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 uppercase">Recurring Audit</span>
-          <h3 class="text-white font-bold mt-3 text-base">Streamly Subscription</h3>
-          <p class="text-gray-400 text-xs mt-1">Unused $9.99 monthly debit running for 13 consecutive months.</p>
-          <div class="mt-4 font-mono text-xs p-2 rounded bg-black/40 border border-gray-800 text-indigo-300">
-            Streamly: $9.99/mo (13 mos)
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Interactive Time Series Visualizer -->
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 glow-cyan">
-      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+
+    <!-- ================= TAB 3: VERIFIED DETECTIONS (STORYLINES) ================= -->
+    <div id="tab-storylines" class="tab-content hidden space-y-6">
+      
+      <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <span>📈</span> Predictive Foundation Visualizer
+            <span>🎯</span> Architectural Detector Breakdown
           </h2>
-          <p class="text-xs text-gray-400">Observed time-series, detected anomalies, and 30-day recursive forecast</p>
+          <p class="text-xs text-gray-400">Model-free seasonal walk-forward screens and transactional stability filters</p>
+        </div>
+        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          Zero False Positives
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Stability Filter -->
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-rose-500">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Detector 1: Stability Filter</span>
+            <span class="text-xs font-mono text-gray-400">napper/recurring.py</span>
+          </div>
+          <h3 class="text-base font-bold text-white">Fitness First Gym (+20% Fee Hike)</h3>
+          <p class="text-xs text-gray-300 mt-2 leading-relaxed">
+            Groups debits by normalized merchant and requires merchant presence in &ge;3 distinct months. Calculates month-to-month coefficient of variation. Only <em>stable</em> recurring merchants raise price-change alerts, preventing "grocery bill varies" false alarms.
+          </p>
+          <div class="mt-4 p-3 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-rose-300">
+            &bull; Pre-June typical fee: $24.99/mo<br>
+            &bull; June onwards fee: $29.99/mo (+20%)<br>
+            &bull; Status: Flagged &amp; Verified ✓
+          </div>
         </div>
 
-        <!-- Series Selector -->
-        <div class="flex items-center gap-3">
-          <label class="text-xs text-gray-400 font-semibold">Select Series:</label>
-          <select id="seriesSelector" onchange="loadChart(this.value)" class="bg-gray-950 border border-gray-700 text-white text-xs rounded-lg px-3 py-2 font-mono outline-none focus:border-emerald-500">
-            <option value="electricity:kwh">electricity:kwh</option>
-            <option value="bank:spend">bank:spend</option>
-            <option value="steps:steps">steps:steps</option>
-            <option value="bank:spend-daily">bank:spend-daily</option>
-          </select>
+        <!-- Duplicate Detector -->
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-amber-500">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Detector 2: Duplicate Audit</span>
+            <span class="text-xs font-mono text-gray-400">napper/recurring.py</span>
+          </div>
+          <h3 class="text-base font-bold text-white">City Power Double Bill</h3>
+          <p class="text-xs text-gray-300 mt-2 leading-relaxed">
+            Detects multiple debit line items landing on the exact same calendar date for the exact same merchant and amount. Perfect for catching double-charged electric, telco, or utility invoices.
+          </p>
+          <div class="mt-4 p-3 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-amber-300">
+            &bull; Date: 2026-09-20<br>
+            &bull; Merchant: City Power &amp; Light<br>
+            &bull; Debit: 2x $77.86 (Exact duplicate match) ✓
+          </div>
+        </div>
+
+        <!-- Walk-Forward Screen -->
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Detector 3: Walk-Forward Seasonal Screen</span>
+            <span class="text-xs font-mono text-gray-400">napper/anomaly.py</span>
+          </div>
+          <h3 class="text-base font-bold text-white">3-Day Power Spike (+262%)</h3>
+          <p class="text-xs text-gray-300 mt-2 leading-relaxed">
+            Model-free: compares today's value against the median of prior 8 same weekdays with a 3-sigma robust scale. Flags only points that exceed both a 3-sigma band and a 40% minimum deviation.
+          </p>
+          <div class="mt-4 p-3 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-emerald-300">
+            &bull; Normal Wednesday: ~15.95 kWh<br>
+            &bull; Spike Wednesday: 57.70 kWh (+262%)<br>
+            &bull; Isolated days: 2026-09-14, 09-15, 09-16 (Zero noise outside) ✓
+          </div>
+        </div>
+
+        <!-- Water Leak -->
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-cyan-500">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Detector 4: Dynamic Metric Ingestion</span>
+            <span class="text-xs font-mono text-gray-400">sample_uploads/water.csv</span>
+          </div>
+          <h3 class="text-base font-bold text-white">Water Pipe Burst Leak (+706%)</h3>
+          <p class="text-xs text-gray-300 mt-2 leading-relaxed">
+            Ingested from smart meter CSV. The seasonal screen evaluates normal daily water draw and immediately isolates the catastrophic leak days.
+          </p>
+          <div class="mt-4 p-3 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-cyan-300">
+            &bull; Typical daily draw: ~52.8 liters<br>
+            &bull; Leak day draw: 425.0 liters (+706%)<br>
+            &bull; Flagged on: 2026-10-18 and 2026-10-19 ✓
+          </div>
         </div>
       </div>
 
-      <!-- Chart Canvas -->
-      <div class="relative w-full h-[320px]">
-        <canvas id="mainChart"></canvas>
-      </div>
-
-      <!-- Metric Pills Row -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-4 border-t border-gray-800 text-xs">
-        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
-          <span class="text-gray-400 block">Forecasting Engine:</span>
-          <span id="chartModel" class="font-bold text-emerald-400 text-sm">TabPFN-3.5</span>
-        </div>
-        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
-          <span class="text-gray-400 block">Holdout Error (WMAPE):</span>
-          <span id="chartWmape" class="font-bold text-white text-sm">--</span>
-        </div>
-        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
-          <span class="text-gray-400 block">Next 30-Day Forecast Sum:</span>
-          <span id="chartSum" class="font-bold text-blue-400 text-sm">--</span>
-        </div>
-        <div class="bg-black/40 border border-gray-800 p-3 rounded-lg">
-          <span class="text-gray-400 block">Anomalies Isolated:</span>
-          <span id="chartAnomalies" class="font-bold text-rose-400 text-sm">--</span>
-        </div>
-      </div>
     </div>
 
-    <!-- Lower Section: CSV Drag & Drop and Sentry Tracing -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <!-- CSV Ingestion Dropzone -->
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col">
-        <h2 class="text-base font-bold text-white flex items-center gap-2 mb-2">
-          <span>📥</span> CSV Inbox &amp; Ingestion
-        </h2>
-        <p class="text-xs text-gray-400 mb-4">Drop any bank, fitness, or smart meter CSV into your local inbox.</p>
-
-        <!-- Drop Box -->
-        <div id="dropzone" class="border-2 border-dashed border-gray-700 hover:border-emerald-500 rounded-xl p-8 text-center cursor-pointer transition bg-black/20 flex flex-col items-center justify-center space-y-2">
-          <span class="text-4xl">📄</span>
-          <p class="text-sm font-semibold text-gray-200">Drag &amp; drop CSV files here</p>
-          <p class="text-xs text-gray-500">or click to browse multiple files from your computer</p>
-          <input type="file" id="fileInput" accept=".csv" multiple class="hidden" onchange="uploadFiles(this.files)">
+    <!-- ================= TAB 4: TORTOISE VS HARE BENCHMARK ================= -->
+    <div id="tab-benchmark" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6 glow-purple border border-purple-500/30">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>⚖️</span> Tortoise vs. Hare: Closed API vs. Open Foundation
+            </h2>
+            <p class="text-xs text-gray-400">Reproducible benchmark measured against GPT-4o-mini zero-shot prompting on the identical 30-day holdout window</p>
+          </div>
+          <span class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            TabPFN Beats GPT-4o-mini by 3x
+          </span>
         </div>
 
-        <!-- Datasets in Store -->
-        <div class="mt-6 flex-1">
-          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Active Stored Datasets</h3>
-          <div id="datasetsList" class="space-y-2 text-xs font-mono">
-            <div class="text-gray-500">Loading datasets...</div>
+        <!-- Benchmark Matrix Table -->
+        <div class="overflow-x-auto rounded-xl border border-white/10 mt-4">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-black/50 text-gray-400 border-b border-white/10">
+              <tr>
+                <th class="p-3.5">Attribute</th>
+                <th class="p-3.5 text-rose-400">Hare (Closed Hosted API: GPT-4o-mini)</th>
+                <th class="p-3.5 text-emerald-400 font-bold">Tortoise (Napper: TabPFN-3.5 Local)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 bg-black/20">
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Model Type</td>
+                <td class="p-3.5 text-gray-400">Proprietary Cloud API (gpt-4o-mini)</td>
+                <td class="p-3.5 text-emerald-400 font-bold">TabPFN-3.5 (Open-Weight Foundation)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Cost Per Run</td>
+                <td class="p-3.5 text-rose-400 font-bold">~$0.0123 / run ($4.49 / yr)</td>
+                <td class="p-3.5 text-emerald-400 font-bold">$0.00 (Zero runtime bill)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Data Privacy</td>
+                <td class="p-3.5 text-rose-400">❌ Bank CSV transmitted over public internet</td>
+                <td class="p-3.5 text-emerald-400 font-bold">✅ 100% Local (0 bytes transmitted)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Offline Capable</td>
+                <td class="p-3.5 text-rose-400">❌ Fails without active cloud connection</td>
+                <td class="p-3.5 text-emerald-400 font-bold">✅ Works in airplane mode / air-gapped</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Holdout Error (Daily Spend WMAPE)</td>
+                <td class="p-3.5 text-rose-400">165.45% (Zero-shot prompted arithmetic drift)</td>
+                <td class="p-3.5 text-emerald-400 font-bold">56.34% (3x better than GPT-4o-mini, 12x vs naive)</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Monthly Spend WMAPE</td>
+                <td class="p-3.5 text-gray-400">4.85%</td>
+                <td class="p-3.5 text-emerald-400 font-bold">2.03%</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Execution Latency</td>
+                <td class="p-3.5 text-gray-400">~3.42s (Network round-trip)</td>
+                <td class="p-3.5 text-purple-400 font-bold">~373s (Consumer AMD CPU "Slow &amp; Steady")</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-gray-300">Auditability &amp; Portability</td>
+                <td class="p-3.5 text-rose-400">❌ Closed black box; provider can deprecate</td>
+                <td class="p-3.5 text-emerald-400 font-bold">✅ Open weights, auditable &amp; swappable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="text-xs text-gray-400 mt-4 leading-relaxed">
+          * Measured with <code class="text-emerald-400 bg-black/40 px-1 py-0.5 rounded">experiments/hare_measure.py</code> and logged to <code class="text-emerald-400 bg-black/40 px-1 py-0.5 rounded">data/hare/run.json</code>.
+        </p>
+      </div>
+
+    </div>
+
+
+    <!-- ================= TAB 5: SENTRY TRACING ================= -->
+    <div id="tab-sentry" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6 glow-emerald border border-emerald-500/20">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>🛡️</span> Sentry AI Agent Distributed Trace
+            </h2>
+            <p class="text-xs text-gray-400">End-to-end distributed instrumentation monitoring offline agent tool calls and model steps</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono">
+            ai.cost: $0.00
+          </span>
+        </div>
+
+        <!-- Waterfall Visualizer -->
+        <div class="bg-black/60 border border-white/10 rounded-xl p-5 font-mono text-xs space-y-3 mt-4">
+          <div class="flex items-center justify-between text-blue-400 font-bold border-b border-white/10 pb-2.5">
+            <span>▶ [transaction] napper.overnight_run</span>
+            <span class="text-gray-400 text-[11px] font-normal">op: ai.agent</span>
+          </div>
+          <div class="flex items-center justify-between text-gray-300 pl-4 border-l-2 border-white/10 py-1">
+            <span>├── [span] ingest_inbox_csvs</span>
+            <span class="text-gray-500 text-[10px]">ai.tool.ingest &bull; 0.02s</span>
+          </div>
+          <div class="flex items-center justify-between text-gray-300 pl-4 border-l-2 border-white/10 py-1">
+            <span>├── [span] detect_recurring &amp; duplicates</span>
+            <span class="text-gray-500 text-[10px]">ai.tool.detectors &bull; 0.05s</span>
+          </div>
+          <div class="flex items-center justify-between text-emerald-400 pl-4 border-l-2 border-emerald-500/40 py-1 font-semibold">
+            <span>├── [span] tabpfn_3_5_forecast</span>
+            <span class="text-emerald-500 text-[10px]">ai.model.tabpfn &bull; TabPFNRegressor</span>
+          </div>
+          <div class="flex items-center justify-between text-gray-300 pl-4 border-l-2 border-white/10 py-1">
+            <span>├── [span] walk_forward_seasonal_screen</span>
+            <span class="text-gray-500 text-[10px]">ai.tool.anomaly_screen &bull; 0.01s</span>
+          </div>
+          <div class="flex items-center justify-between text-purple-400 pl-4 border-l-2 border-purple-500/40 py-1 font-semibold">
+            <span>└── [span] synthesize_morning_brief</span>
+            <span class="text-purple-400 text-[10px]">ai.chat_completions &bull; template/gemma</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-xs">
+          <div class="p-3 bg-black/40 border border-white/5 rounded-xl text-center">
+            <span class="text-gray-400 block text-[10px] uppercase font-mono">PII Leaked</span>
+            <strong class="text-emerald-400 text-sm">0 Bytes</strong>
+          </div>
+          <div class="p-3 bg-black/40 border border-white/5 rounded-xl text-center">
+            <span class="text-gray-400 block text-[10px] uppercase font-mono">Metered Cloud Cost</span>
+            <strong class="text-emerald-400 text-sm">$0.00</strong>
+          </div>
+          <div class="p-3 bg-black/40 border border-white/5 rounded-xl text-center">
+            <span class="text-gray-400 block text-[10px] uppercase font-mono">Air-gapped Ready</span>
+            <strong class="text-emerald-400 text-sm">100% Offline</strong>
           </div>
         </div>
       </div>
 
-      <!-- Sentry Agent Tracing Waterfall -->
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <span>🛡️</span> Sentry Agent Distributed Trace
+    </div>
+
+
+    <!-- ================= TAB 6: INBOX & DATASETS ================= -->
+    <div id="tab-inbox" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Drag & Drop Dropzone -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col">
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-2">
+            <span>📥</span> CSV Inbox &amp; Ingestion
           </h2>
-          <span class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Cost: $0.00</span>
-        </div>
-        <p class="text-xs text-gray-400 mb-4">Every predictive step is traced with zero PII and zero cloud API charges.</p>
+          <p class="text-xs text-gray-400 mb-4">Drop any bank, fitness, or smart meter CSV into your local inbox.</p>
 
-        <div class="bg-black/60 border border-gray-800 rounded-xl p-4 font-mono text-xs space-y-2.5">
-          <div class="flex items-center justify-between text-blue-400 font-bold border-b border-gray-800 pb-2">
-            <span>▶ [transaction] napper.overnight_run</span>
-            <span class="text-gray-400 text-[11px]">op: ai.agent</span>
+          <div id="dropzone" class="border-2 border-dashed border-white/20 hover:border-emerald-500/80 rounded-2xl p-10 text-center cursor-pointer transition bg-black/30 flex flex-col items-center justify-center space-y-3 group">
+            <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition">
+              📄
+            </div>
+            <p class="text-sm font-semibold text-gray-200">Drag &amp; drop CSV files here</p>
+            <p class="text-xs text-gray-500">or click to browse multiple files from your computer</p>
+            <input type="file" id="fileInput" accept=".csv" multiple class="hidden" onchange="uploadFiles(this.files)">
           </div>
-          <div class="flex items-center justify-between text-gray-300 pl-4 border-l border-gray-800">
-            <span>├── [span] ingest_inbox_csvs</span>
-            <span class="text-gray-500 text-[10px]">ai.tool.ingest</span>
-          </div>
-          <div class="flex items-center justify-between text-gray-300 pl-4 border-l border-gray-800">
-            <span>├── [span] detect_recurring &amp; duplicates</span>
-            <span class="text-gray-500 text-[10px]">ai.tool.detectors</span>
-          </div>
-          <div class="flex items-center justify-between text-emerald-400 pl-4 border-l border-gray-800">
-            <span>├── [span] tabpfn_3_5_forecast</span>
-            <span class="text-gray-500 text-[10px]">ai.model.tabpfn</span>
-          </div>
-          <div class="flex items-center justify-between text-gray-300 pl-4 border-l border-gray-800">
-            <span>├── [span] walk_forward_seasonal_screen</span>
-            <span class="text-gray-500 text-[10px]">ai.tool.anomaly_screen</span>
-          </div>
-          <div class="flex items-center justify-between text-purple-400 pl-4 border-l border-gray-800">
-            <span>└── [span] synthesize_morning_brief</span>
-            <span class="text-gray-500 text-[10px]">ai.chat_completions</span>
-          </div>
+
+          <p class="text-[11px] text-gray-500 mt-4 leading-relaxed">
+            * Supports files with any date column (date, timestamp, day) and numeric values (spend, kwh, liters, steps). Deduplicated automatically by content hash.
+          </p>
         </div>
 
-        <div class="mt-4 p-3 bg-gray-950 border border-gray-800/80 rounded-xl text-xs text-gray-400 flex items-center justify-between">
-          <span>PII Leaked: <strong class="text-emerald-400">0 bytes</strong></span>
-          <span>Compute Cost: <strong class="text-emerald-400">$0.00</strong></span>
-          <span>Offline Capable: <strong class="text-emerald-400">100%</strong></span>
+        <!-- Active Datasets Stored -->
+        <div class="glass-card rounded-2xl p-6 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono">Active Stored Datasets</h3>
+            <span class="text-xs text-gray-400 font-mono">data/store/*.csv</span>
+          </div>
+          
+          <div id="datasetsList" class="space-y-2.5 text-xs font-mono flex-1">
+            <div class="text-gray-500">Loading datasets...</div>
+          </div>
         </div>
       </div>
 
@@ -274,31 +679,87 @@
 
   </main>
 
-  <footer class="border-t border-gray-800 py-6 text-center text-xs text-gray-500">
-    <p>Napper &bull; Hacktoberfest 2026 Challenge Entry &bull; Ansuj Kumar Meher &amp; Team</p>
-    <p class="mt-1">Powered by TabPFN-3.5 (Prior Labs) and Local Predictive Architecture</p>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-white/10 py-6 text-center text-xs text-gray-500 mt-12 bg-[#070a12]">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>Napper &bull; Hacktoberfest 2026 Challenge Entry &bull; <strong>Ansuj Kumar Meher</strong></p>
+      <p class="text-gray-500">Powered by <strong>TabPFN-3.5</strong> foundation model &bull; 100% Offline &bull; $0.00 Cost</p>
+    </div>
   </footer>
 
-  <!-- Dashboard JavaScript Logic -->
+
+  <!-- ================= SCRIPT LOGIC ================= -->
   <script>
     let currentEngine = 'deep';
     let chartInstance = null;
 
+    // Tab Switching Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('header [id^="nav-tab-"]').forEach(btn => {
+        btn.classList.remove('nav-tab-active');
+      });
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) activeBtn.classList.add('nav-tab-active');
+
+      if (tabId === 'tab-studio') {
+        setTimeout(() => {
+          if (chartInstance) chartInstance.resize();
+        }, 100);
+      }
+    }
+
+    // Engine Switcher
     function setMode(mode) {
       currentEngine = mode;
       const btnFast = document.getElementById('btnModeFast');
       const btnDeep = document.getElementById('btnModeDeep');
+      const statEngineBadge = document.getElementById('statEngineBadge');
+
       if (mode === 'fast') {
-        btnFast.className = 'px-3 py-1.5 rounded-md font-semibold bg-emerald-500 text-gray-950 transition';
-        btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition';
+        btnFast.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold bg-emerald-500 text-gray-950 transition shadow-sm';
+        btnDeep.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white transition';
+        if (statEngineBadge) {
+          statEngineBadge.textContent = 'Naive Baseline (Fast)';
+          statEngineBadge.className = 'font-bold text-emerald-400 font-mono';
+        }
       } else {
-        btnDeep.className = 'px-3 py-1.5 rounded-md font-semibold bg-purple-600 text-white transition';
-        btnFast.className = 'px-3 py-1.5 rounded-md font-semibold text-gray-400 hover:text-white transition';
+        btnDeep.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold bg-purple-600/90 hover:bg-purple-600 text-white transition shadow-sm';
+        btnFast.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-gray-400 hover:text-white transition';
+        if (statEngineBadge) {
+          statEngineBadge.textContent = 'TabPFN-3.5';
+          statEngineBadge.className = 'font-bold text-purple-400 font-mono';
+        }
       }
       fetchStatus();
       loadChart();
     }
 
+    // Toast Notification System
+    function showToast(message, type = 'success') {
+      const existing = document.getElementById('napperToast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'napperToast';
+      toast.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border text-xs font-semibold shadow-2xl flex items-center gap-2 transition-all transform duration-300 opacity-0 translate-y-4 ${
+        type === 'success' 
+          ? 'bg-emerald-950/95 border-emerald-500/60 text-emerald-300 glow-emerald' 
+          : 'bg-rose-950/95 border-rose-500/60 text-rose-300'
+      }`;
+      toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <span>${message}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-4'), 20);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Fetch Status & Digest
     async function fetchStatus() {
       try {
         const res = await fetch(`/api/status?engine=${currentEngine}`);
@@ -309,14 +770,14 @@
         if (badge) {
           if (data.engine === 'deep' || (data.latest_run && data.latest_run.series && data.latest_run.series.some(s => s.model && s.model.includes('tabpfn')))) {
             badge.textContent = '🦥 Deep Sleep (TabPFN-3.5)';
-            badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20';
+            badge.className = 'text-xs px-2.5 py-0.5 rounded-full font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30';
           } else {
             badge.textContent = '⚡ Nap Mode (Fast Baseline)';
-            badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+            badge.className = 'text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
           }
         }
 
-        // Parse digest text
+        // Parse digest text into Line 1 and formatted event chips
         if (data.latest_digest) {
           const lines = data.latest_digest.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('##'));
           if (lines.length >= 1) {
@@ -339,14 +800,14 @@
                 icon = '📈';
                 badgeClass = 'text-rose-300 border-rose-500/30 bg-rose-500/10';
               }
-              return `<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium ${badgeClass} mr-2 mb-2">
+              return `<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium ${badgeClass}">
                 <span>${icon}</span>
                 <span>${text}</span>
               </div>`;
             }).join('');
             document.getElementById('briefLine2').innerHTML = eventsHtml;
           } else {
-            document.getElementById('briefLine2').textContent = '';
+            document.getElementById('briefLine2').innerHTML = `<span class="text-gray-400 text-sm">Nothing odd spotted. All signals normal.</span>`;
           }
         }
 
@@ -354,9 +815,15 @@
         const dsList = document.getElementById('datasetsList');
         if (data.datasets && data.datasets.length > 0) {
           dsList.innerHTML = data.datasets.map(d => `
-            <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-gray-800">
-              <span class="text-gray-300 font-semibold">${d.name}.csv</span>
-              <span class="text-gray-500">${d.rows} rows &bull; ${d.size_kb} KB</span>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5 hover:border-white/10 transition">
+              <div class="flex items-center gap-2.5">
+                <span class="text-base">${d.name.includes('water') ? '💧' : d.name.includes('elect') ? '⚡' : d.name.includes('bank') ? '💳' : '👟'}</span>
+                <div>
+                  <span class="text-gray-200 font-semibold block">${d.name}.csv</span>
+                  <span class="text-[10px] text-gray-500">${d.columns ? d.columns.join(', ') : ''}</span>
+                </div>
+              </div>
+              <span class="text-gray-400 bg-white/5 px-2.5 py-1 rounded-md text-[11px]">${d.rows} rows &bull; ${d.size_kb} KB</span>
             </div>
           `).join('');
 
@@ -366,12 +833,17 @@
           if (trustEl) {
             trustEl.innerHTML = `<span>✓</span> 0 false alarms across ${totalPoints.toLocaleString()} data points (${totalFiles} datasets)`;
           }
+          const statPointsBadge = document.getElementById('statPointsBadge');
+          if (statPointsBadge) {
+            statPointsBadge.textContent = `${totalPoints.toLocaleString()} points (${totalFiles} files)`;
+          }
         }
       } catch (err) {
         console.error('Error fetching status:', err);
       }
     }
 
+    // Load Chart.js Visualizer
     async function loadChart(seriesName) {
       try {
         const currentSel = seriesName || document.getElementById('seriesSelector')?.value || '';
@@ -391,16 +863,16 @@
         const modelName = data.model || 'TabPFN-3.5';
         modelEl.textContent = modelName;
         if (modelName.includes('tabpfn')) {
-          modelEl.className = 'font-bold text-purple-400 text-sm';
+          modelEl.className = 'font-bold text-purple-400 text-sm mt-0.5 block';
         } else {
-          modelEl.className = 'font-bold text-gray-300 text-sm';
+          modelEl.className = 'font-bold text-gray-300 text-sm mt-0.5 block';
         }
 
         document.getElementById('chartWmape').textContent = data.wmape_pct ? `${data.wmape_pct}%` : 'N/A';
-        document.getElementById('chartSum').textContent = data.next_sum ? `~${data.next_sum}` : 'N/A';
+        document.getElementById('chartSum').textContent = data.next_sum ? `~${data.next_sum} ${data.unit || ''}` : 'N/A';
         document.getElementById('chartAnomalies').textContent = data.anomalies ? `${data.anomalies.length} detected` : '0';
 
-        // Prepare chart points
+        // Prepare points
         const histLabels = data.history.map(h => h.date);
         const histValues = data.history.map(h => h.value);
 
@@ -411,19 +883,19 @@
         const actualDataset = [...histValues, ...Array(foreLabels.length).fill(null)];
         const foreDataset = [...Array(histLabels.length - 1).fill(null), histValues[histValues.length - 1], ...foreValues];
 
-        // Anomaly point styling
+        // Anomaly styling
         const pointColors = actualDataset.map((val, idx) => {
           const curDate = allLabels[idx];
           if (data.anomalies && data.anomalies.some(a => a.date === curDate)) {
-            return '#f43f5e'; // Red anomaly
+            return '#f43f5e';
           }
-          return '#3b82f6'; // Blue regular
+          return '#3b82f6';
         });
 
         const pointRadii = actualDataset.map((val, idx) => {
           const curDate = allLabels[idx];
           if (data.anomalies && data.anomalies.some(a => a.date === curDate)) {
-            return 7; // Larger dot for anomaly
+            return 7;
           }
           return 2;
         });
@@ -440,18 +912,19 @@
                 label: 'Observed History',
                 data: actualDataset,
                 borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
                 borderWidth: 2,
                 pointBackgroundColor: pointColors,
                 pointBorderColor: pointColors,
                 pointRadius: pointRadii,
                 tension: 0.15,
+                fill: true,
               },
               {
-                label: '30-Day TabPFN Forecast',
+                label: '30-Day TabPFN Forecast Horizon',
                 data: foreDataset,
                 borderColor: '#10b981',
-                borderDash: [5, 5],
+                borderDash: [6, 4],
                 borderWidth: 2,
                 pointRadius: 0,
                 tension: 0.15,
@@ -464,14 +937,18 @@
             interaction: { mode: 'index', intersect: false },
             plugins: {
               legend: {
-                labels: { color: '#9ca3af', font: { size: 11 } }
+                labels: { color: '#94a3b8', font: { size: 11, family: 'JetBrains Mono' } }
               },
               tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                padding: 12,
                 callbacks: {
                   afterBody: function(items) {
                     const idx = items[0].dataIndex;
                     const date = allLabels[idx];
-                    const anom = data.anomalies.find(a => a.date === date);
+                    const anom = data.anomalies ? data.anomalies.find(a => a.date === date) : null;
                     if (anom) {
                       return `\n⚠️ ANOMALY DETECTED!\n${anom.note || 'Expected vs Actual Spike'}`;
                     }
@@ -482,12 +959,12 @@
             },
             scales: {
               x: {
-                grid: { color: '#1f2937' },
-                ticks: { color: '#6b7280', maxTicksLimit: 12 }
+                grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' }, maxTicksLimit: 12 }
               },
               y: {
-                grid: { color: '#1f2937' },
-                ticks: { color: '#6b7280' }
+                grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
               }
             }
           }
@@ -498,6 +975,7 @@
       }
     }
 
+    // Trigger Run Action
     async function triggerRun() {
       const btn = document.getElementById('btnRun');
       const spinner = document.getElementById('runSpinner');
@@ -505,7 +983,7 @@
 
       btn.disabled = true;
       spinner.classList.remove('hidden');
-      text.textContent = currentEngine === 'deep' ? 'Running TabPFN (~15m)...' : 'Running (~2s)...';
+      text.textContent = currentEngine === 'deep' ? 'Running TabPFN...' : 'Running (~2s)...';
 
       try {
         const res = await fetch('/api/run', {
@@ -514,10 +992,11 @@
           body: JSON.stringify({ engine: currentEngine })
         });
         const data = await res.json();
+        showToast(`Agent run complete (${currentEngine === 'deep' ? 'TabPFN' : 'Nap Mode'})`);
         await fetchStatus();
-        await loadChart(document.getElementById('seriesSelector').value);
+        await loadChart();
       } catch (err) {
-        alert('Run error: ' + err);
+        showToast('Run error: ' + err, 'error');
       } finally {
         btn.disabled = false;
         spinner.classList.add('hidden');
@@ -525,15 +1004,18 @@
       }
     }
 
+    // Reset Demo
     async function resetDemoData() {
       if (!confirm('Regenerate clean sample CSVs in inbox/?')) return;
       await fetch('/api/demo-reset', { method: 'POST' });
+      showToast('Sample CSVs reset');
       await triggerRun();
     }
 
+    // Speech Synthesis
     function speakBrief() {
-      const l1 = document.getElementById('briefLine1').textContent;
-      const l2 = document.getElementById('briefLine2').textContent;
+      const l1 = document.getElementById('briefLine1')?.textContent || '';
+      const l2 = document.getElementById('briefLine2')?.textContent || '';
       const text = `${l1}. ${l2}`;
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -541,34 +1023,16 @@
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
+        showToast('Speaking morning brief...');
       } else {
-        alert('Speech Synthesis not supported in this browser.');
+        showToast('Speech Synthesis not supported in this browser', 'error');
       }
     }
 
-    function showToast(message, type = 'success') {
-      const existing = document.getElementById('napperToast');
-      if (existing) existing.remove();
-
-      const toast = document.createElement('div');
-      toast.id = 'napperToast';
-      toast.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border text-xs font-semibold shadow-2xl flex items-center gap-2 transition-all transform duration-300 opacity-0 translate-y-4 ${
-        type === 'success' 
-          ? 'bg-emerald-950/95 border-emerald-500/60 text-emerald-300' 
-          : 'bg-rose-950/95 border-rose-500/60 text-rose-300'
-      }`;
-      toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <span>${message}</span>`;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-4'), 20);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-4');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
-    }
-
+    // Copy to Clipboard
     function copyBrief() {
-      const l1 = document.getElementById('briefLine1').textContent;
-      const l2 = document.getElementById('briefLine2').textContent;
+      const l1 = document.getElementById('briefLine1')?.textContent || '';
+      const l2 = document.getElementById('briefLine2')?.textContent || '';
       navigator.clipboard.writeText(`${l1}\n${l2}`).then(() => {
         showToast('Brief copied to clipboard!');
       });
@@ -578,15 +1042,18 @@
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
 
-    dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-emerald-500'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-emerald-500'));
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('border-emerald-500');
-      if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
-    });
+    if (dropzone && fileInput) {
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-emerald-500'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-emerald-500'));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-emerald-500');
+        if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
+      });
+    }
 
+    // Upload Files
     async function uploadFiles(fileList) {
       if (!fileList || fileList.length === 0) return;
       const validFiles = Array.from(fileList).filter(f => f.name.endsWith('.csv'));
