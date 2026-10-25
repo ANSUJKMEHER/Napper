@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "napper"
+version = "0.1.0"
+description = "Autonomous offline predictive agent built with open-weight TabPFN-3.5 foundation models"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "requests>=2.28",
+    "sentry-sdk>=2.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+tabpfn = ["tabpfn"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["napper*"]
