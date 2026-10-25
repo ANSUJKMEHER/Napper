@@ -43,8 +43,10 @@ Four catches across four distinct detectors:
 
 ## Demo
 
-- **Video Walkthrough:** [Watch the 90-Second Demo Video on Google Drive](https://drive.google.com/file/d/1-woR8St_bAQlrT0g35WP45a_uiEjt9AD/view?usp=sharing)
-- **Live Interactive Dashboard:** [https://ansujkmeher.github.io/Napper/](https://ansujkmeher.github.io/Napper/)
+{% youtube cplgL3_lUTw %}
+
+- 🌐 **[Live Interactive Dashboard (GitHub Pages)](https://ansujkmeher.github.io/Napper/)**
+- 🎬 **Direct Video Link:** [https://youtu.be/cplgL3_lUTw](https://youtu.be/cplgL3_lUTw)
 
 ### Dashboard & Audio Brief Features:
 - **Audio Morning Brief:** Integrated Web Speech API reads aloud your morning forecast and catches at the click of a button (`🔊 Listen to Brief`).
