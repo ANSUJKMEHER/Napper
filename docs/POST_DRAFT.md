@@ -67,12 +67,12 @@ The comparison table, measured against a zero-shot GPT-4o-mini prompt forecast (
 | Attribute | Hare (Closed Hosted API: GPT-4o-mini) | Tortoise (Napper: TabPFN-3.5 Local) |
 |---|---|---|
 | **Model Type** | Proprietary Cloud API (`gpt-4o-mini`) | TabPFN-3.5 (Open-Weight Foundation Model) |
-| **Cost Per Run** | ~$0.0123 / run (token usage & cloud fees) | **$0.00 (Zero runtime cost)** |
+| **Cost Per Run** | ~$0.0123 / run ($4.49 / yr) | **$0.00 (Zero runtime cost)** |
 | **Data Privacy** | ❌ Data leaves machine (bank transactions sent over cloud) | **✅ 100% Local (0 bytes transmitted)** |
 | **Offline Capable** | ❌ Fails without active internet connection | **✅ Works in airplane mode / air-gapped** |
 | **Holdout Error (Daily Spend WMAPE)** | 165.45% (Prompted zero-shot token regression) | **56.34% (3x better than GPT-4o-mini, 12x better than naive)** |
 | **Monthly Spend WMAPE** | 4.85% | **2.03%** |
-| **Execution Latency** | ~3.42s (Network API round-trip) | ~432s (Local AMD Ryzen CPU "Slow & Steady") |
+| **Execution Latency** | ~3.42s (Network API round-trip) | ~373s (Local AMD Ryzen CPU "Slow & Steady") |
 | **Auditability & Portability** | ❌ Closed black box; subject to vendor deprecation | **✅ Open weights, fully auditable, swappable** |
 
 While the closed hosted API is fast to reply over the wire, it leaks personal financial data and costs recurring money every single night. Furthermore, zero-shot prompted LLMs struggle with day-of-month and weekday arithmetic, yielding 165.45% error. The tortoise takes its time overnight on local consumer silicon ("Slow and Steady"), delivers superior predictive precision (56.34%), and costs literally $0.00.
@@ -133,7 +133,7 @@ I would rather tell you than have a judge find out:
 
 - Monthly bills drift across weekdays (the rent lands on a different day every month), which breaks same-weekday screening for bank data. So spend forecasting runs monthly, and the recurring and duplicate detectors own that territory. This is a real limitation of the approach, and it is documented in the code.
 - TabPFN-3.5 weights are non-commercial licensed. Fine for this project, and worth saying out loud before someone assumes otherwise.
-- The TabPFN-3.5 numbers in the table are measured on our test machine (AMD Ryzen 5 5625U CPU, 16GB RAM) running full multi-series recursive inference. On CPU, it takes ~15 minutes ("Slow and Steady"); on an NVIDIA GPU, it executes in seconds. We provide both Deep Sleep (TabPFN-3.5) and Nap Mode (~2s) so anyone can test it easily.
+- The TabPFN-3.5 numbers in the table are measured on our test machine (AMD Ryzen 5 5625U CPU, 16GB RAM) running full multi-series recursive inference. On CPU, it takes ~6 minutes (~373s, "Slow and Steady"); on an NVIDIA GPU, it executes in seconds. We provide both Deep Sleep (TabPFN-3.5) and Nap Mode (~2s) so anyone can test it easily.
 - **Gemma Local Execution:** The recorded demo runs the deterministic template digest because my test laptop (integrated AMD graphics) cannot comfortably host a heavy 9GB Ollama LLM. The Gemma bridge is implemented in `napper/digest.py`, fully unit-tested, and activates automatically wherever Ollama is running.
 - Thresholds are dataset-specific. The screen uses a 40% minimum deviation and a 3-sigma band; a different dataset might want different values. There is a config file for exactly that.
 
