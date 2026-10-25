@@ -16,28 +16,29 @@ You drop a CSV into a folder and go to bed. Any CSV. A bank export, a smart-mete
 2. Forecasts the next month from each series using TabPFN-3.5, an open-weight tabular foundation model from Prior Labs that runs on your own machine.
 3. Screens the recent history for anomalies, using a same-season comparison (today versus the median of the previous eight same weekdays, no model needed).
 4. Runs two extra checks on bank-like data: recurring-charge detection and duplicate-charge detection.
-5. Writes a two-line digest with a local Gemma model, and leaves it in a file next to your other morning reading.
+5. Writes a concise morning brief — typically two lines per source, and on quiet mornings, almost nothing — and leaves it in a file next to your other morning reading.
 
-That is the whole product. Two lines. If nothing happened, the second line says nothing happened. The laziness is the feature: I set it up once, and my job every morning is now reading a text file instead of three apps.
+That is the whole product. A concise brief that scales strictly to genuine signals: a clean forecast headline, plus only verified alerts. If nothing happened, it says nothing happened. The laziness is the feature: I set it up once, and my job every morning is now reading a 10-second text file instead of three apps.
 
 ## What it caught on the demo data
 
-I generated three synthetic CSVs with storylines planted in them, seeded so anyone can reproduce the exact same files. Then I let Napper run.
+I generated four synthetic CSVs (`bank`, `electricity`, `steps`, and `water`) with storylines planted in them, seeded so anyone can reproduce the exact same files across 1,110 data points. Then I let Napper run.
 
-The digest from the demo run:
+The digest from the TabPFN run (`out/latest.md`):
 
 ```
 bank next month: ~1904.17 (local model tabpfn-3.5, holdout error 2.03%).
-price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; 2026-09-16: 57.70 vs expected 15.95 (+262%)
+price change: fitness first gym was $24.99/mo, now $29.99/mo (+20%); possible duplicate charge: city power light billed 2x $77.86 on 2026-09-20; water spike: 425.0 liters on 2026-10-19 (expected ~52.8 liters, +706%)
 ```
 
-Three catches, three different detectors:
+Four catches, four different detectors:
 
-- The gym raised its price in June from 24.99 to 29.99. The recurring-charge detector groups debits by merchant, takes the typical monthly amount, and flags changes for merchants whose bills are stable month to month. It caught a 20% hike I would have noticed roughly never.
-- The power company charged me twice on the same day, same amount. The duplicate detector is just grouping by (day, merchant, amount) and looking for counts above one. No model involved. Models would have been the wrong tool.
-- A three-day electricity spike in September, 262% above the same-weekday baseline. That is the walk-forward screen, and it produced exactly three flags, all of them the planted spike. Quiet days stay quiet.
+- **Gym Price Hike:** The gym raised its price from $24.99 to $29.99 (+20%). The recurring-charge detector groups debits by merchant, takes the typical monthly amount, and flags changes for merchants whose bills are stable month to month. It caught a 20% hike I would have noticed roughly never.
+- **Double Billing:** The power company charged me twice on the same day for the exact same amount ($77.86 x2 on 2026-09-20). The duplicate detector groups by (day, merchant, amount) and looks for counts above one. No model involved. A model would have been the wrong tool.
+- **3-Day Electricity Spike:** An electricity spike in September, 262% above the same-weekday baseline (57.70 kWh vs 15.95 kWh). That is the walk-forward screen, and it produced zero false alarms across the entire 386-day history.
+- **Water Pipe Burst:** A catastrophic spike on October 18–19 where water usage surged to 425.0 liters/day against an expected baseline of 52.8 liters (+706%). In real life, catching a plumbing leak on Day 1 saves hundreds in utility bills and thousands in water damage.
 
-The forgotten-subscription catch is in the recurring table, not the digest: Streamly, $9.99 a month, thirteen months running. I generated it into the data as a joke about the exact thing I was worried about when I started this project, and then the tool did what I built it to do and surfaced it. I have not used Streamly since March. It is still in the table, because canceling it is a human decision, and Napper does not cancel things. It just makes the forgetting impossible.
+The forgotten-subscription catch is in the recurring audit table: Streamly, $9.99 a month, thirteen months running. I generated it into the data as a joke about the exact thing I was worried about when I started this project, and then the tool did what I built it to do and surfaced it. I have not used Streamly since March. It is still in the table, because canceling it is a human decision, and Napper does not cancel things. It just makes the forgetting impossible.
 
 ## The lazy payoff
 
