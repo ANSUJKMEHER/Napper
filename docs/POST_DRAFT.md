@@ -36,7 +36,7 @@ Four catches across four distinct detectors:
 - **Gym Membership Hike:** The gym quietly bumped its monthly fee from $24.99 to $29.99 (+20%). The recurring-charge detector clusters debits by merchant, determines monthly stability, and flags price drift.
 - **Double Billing:** The power company accidentally charged twice on the same day for the exact same amount ($77.86 x2 on 2026-09-20). The duplicate detector isolates identical amounts from the same merchant on the same date without needing heavy ML.
 - **3-Day Electricity Spike:** A 262% power surge in September (57.70 kWh vs. expected 15.95 kWh). The seasonal screen flagged all 3 spike days with 0 false alarms across the 386-day history.
-- **Water Pipe Burst:** A catastrophic spike on October 18–19 where water usage surged to 425.0 liters/day against an expected baseline of 52.8 liters (+706%). Catching a plumbing burst on Day 1 saves hundreds in utility bills and prevents thousands in home flood damage.
+- **Water Pipe Burst:** A catastrophic spike on October 19 where water usage surged to 425.0 liters/day against an expected baseline of 52.8 liters (+706%). Catching a plumbing burst on Day 1 saves hundreds in utility bills and prevents thousands in home flood damage.
 - **Forgotten Subscription:** In the audit table, Napper surfaced *Streamly*, $9.99/month, 13 months running. Unused since March, but silently billing.
 
 ---
@@ -70,7 +70,7 @@ git clone https://github.com/ANSUJKMEHER/Napper.git
 cd Napper
 python -m venv .venv
 # On Windows: .venv\Scripts\activate | On macOS/Linux: source .venv/bin/activate
-pip install -e .
+pip install -r requirements.txt
 
 # Run the 2-second fast agent demo
 python -m napper.cli demo
@@ -100,7 +100,7 @@ horizon = recursive_forecast(reg, last_row, history, horizon_periods=30)
 ```
 
 ### 2. Sentry AI Agent Tracing ($0.00 Metered Observability)
-Most AI agent tracing tools monitor expensive cloud API calls. Napper integrates **Sentry AI Agent Distributed Tracing** to track local execution while providing cryptographic privacy guarantees:
+Most AI agent tracing tools monitor expensive cloud API calls. Napper integrates **Sentry AI Agent Distributed Tracing** to track local execution with zero PII in the payloads:
 - **Root Span:** `napper.overnight_run` (`op="ai.agent"`) tracks end-to-end runtime.
 - **Tool Spans:** `ai.tool.ingest`, `ai.tool.recurring`, `ai.tool.duplicate`, and `ai.tool.anomaly_screen` record per-module latencies and detection counts.
 - **Model Span:** `ai.model.tabpfn` records dataset shapes, holdout WMAPE, and inference timing.
@@ -155,14 +155,14 @@ Napper was designed and developed with autonomous agent workflows and systematic
 
 ## The Lazy Payoff
 
-The contest asks for the effort saved. Here is the real-world arithmetic:
+The contest asks for the effort saved. Here is the arithmetic for *what each catch is worth* — if Napper is watching when one of these happens:
 
 - **Mental Tax Saved:** Checking 3 apps each morning takes ~2 minutes of scrolling. Reading a 10-second brief saves ~1.5 hours a month of friction.
 - **Economic Value ($948+ Annual Protection):**
-  - **Water Pipe Burst Caught:** +706% usage flagged on Day 1 prevents hundreds in utility bills and thousands in flood damage ($450+ saved).
-  - **Price Hike Defense:** Caught the gym's silent $5/month increase ($60/yr).
-  - **Duplicate Billing Defense:** Caught a $77.86 double power charge immediately.
-  - **Zero SaaS Fees:** Equivalent cloud anomaly and time-series monitoring tools charge $30/month ($360/yr). Napper costs $0.00.
+  - **Water Pipe Burst Caught:** A +706% surge caught on Day 1 prevents hundreds in utility bills and thousands in home flood damage ($450+ avoided).
+  - **Price Hike Defense:** Caught the gym's silent $5/month increase ($60/yr avoided).
+  - **Duplicate Billing Defense:** Caught a $77.86 double power charge immediately ($77.86 recovered).
+  - **Zero SaaS Fees:** Typical commercial SaaS anomaly and time-series monitoring tools cost roughly $30/month ($360/yr saved). Napper costs $0.00.
 
 ### Honest Limitations & Disclosures:
 - **Hardware Latency:** On our test laptop (AMD Ryzen 5 5625U CPU, 16GB RAM), multi-series TabPFN-3.5 inference takes ~6 minutes (~373s, "Slow and Steady"). On an NVIDIA GPU, it runs in seconds.
@@ -176,7 +176,7 @@ The contest asks for the effort saved. Here is the real-world arithmetic:
 - **Best Use of TabPFN:** Primary entry. TabPFN-3.5 foundation model powers the predictive time-series core with 2.03% holdout error, benchmarked against GPT-4o-mini.
 - **Best Use of Sentry Agent Tracing:** Complete distributed trace waterfall across agent tools, models, and anomaly screens with `$0.00` cost tagging and 0-byte PII leakage.
 - **Best Use of Gemma:** Natural language morning brief generation bridge via Ollama (`napper/digest.py`).
-- **Best Use of Entire:** End-to-end local autonomous agent architecture.
+- **Best Use of Entire:** Agent-session transparency: [PLAN.md](https://github.com/ANSUJKMEHER/Napper/blob/main/PLAN.md) and [context.md](https://github.com/ANSUJKMEHER/Napper/blob/main/context.md) document the full autonomous agent trajectory (see My Agent Session).
 
 ---
 
