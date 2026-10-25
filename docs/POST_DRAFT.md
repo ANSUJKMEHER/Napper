@@ -1,5 +1,3 @@
-# I built an agent that works while I sleep. It caught a subscription I forgot I had.
-
 *This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 3: Slow and Steady](https://dev.to/challenges/hacktoberfest-week3-2026-10-19)*
 
 ---
@@ -45,7 +43,7 @@ Four catches across four distinct detectors:
 
 ## Demo
 
-- **Video Walkthrough:** {{VIDEO_LINK}}
+- **Video Walkthrough:** [Watch the 90-Second Demo Video on Google Drive](https://drive.google.com/file/d/1-woR8St_bAQlrT0g35WP45a_uiEjt9AD/view?usp=sharing)
 - **Live Interactive Dashboard:** [https://ansujkmeher.github.io/Napper/](https://ansujkmeher.github.io/Napper/)
 
 ### Dashboard & Audio Brief Features:
